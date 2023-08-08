@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/HomeBackground.png</file>
+        <file>images/TongSuoIcon.png</file>
+    </qresource>
+</RCC>
