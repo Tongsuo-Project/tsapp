@@ -35,7 +35,7 @@ void RandNum::on_pushButtonGen_clicked()
     /* 获取随机数输出栏 */
     QTextBrowser *outputNum = this->ui->textBrowserOutput;
 
-    /* 调用openssl中的随机数生成函数 */
+    /* 调用Tongsuo中的随机数生成函数 */
     int ret = RAND_bytes(buf, sizeof(buf));
     if (ret == 0) {
         outputNum->setText(QString("生成失败请重试！"));
@@ -47,4 +47,6 @@ void RandNum::on_pushButtonGen_clicked()
         }
         outputNum->setText(res);
     }
+
+    delete [] buf;
 }
