@@ -18,11 +18,7 @@ public:
 private:
     Ui::Home *ui;
 
-    // QWidget interface
 protected:
     virtual void paintEvent(QPaintEvent *event) override;
 };
-
-
-
 #endif // HOME_H

@@ -7,6 +7,7 @@
 #include <QListWidget>
 #include "home.h"
 #include "randnum.h"
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT

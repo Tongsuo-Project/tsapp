@@ -47,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     /* 设置列表的最大宽度 */
     listWidget->setMaximumWidth(200);
+
     /* 添加到水平布局 */
     hBoxLayout->addWidget(listWidget);
     hBoxLayout->addWidget(stackedWidget);
@@ -57,10 +58,8 @@ MainWindow::MainWindow(QWidget *parent)
     /* 利用 listWidget 的信号函数 currentRowChanged()与槽函数 setCurrentIndex()进行信号与槽连接*/
     connect(listWidget, SIGNAL(currentRowChanged(int)),
             stackedWidget, SLOT(setCurrentIndex(int)));
-
 }
 
 MainWindow::~MainWindow()
 {
 }
-

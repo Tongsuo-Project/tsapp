@@ -16,9 +16,7 @@ public:
     ~RandNum();
 
 private slots:
-
-
-    void on_pushBtnGemRand_clicked();
+    void on_pushButtonGen_clicked();
 
 private:
     Ui::RandNum *ui;
