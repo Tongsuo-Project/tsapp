@@ -7,6 +7,7 @@
 #include <QListWidget>
 #include "home.h"
 #include "randnum.h"
+#include "sm2encrypt.h"
 
 class MainWindow : public QMainWindow
 {
@@ -28,6 +29,8 @@ private:
     Home *tsHome;
     /* 功能1随机数生成界面 */
     RandNum *rdNum;
+    /* 功能2sm2加密界面*/
+    Sm2Encrypt *sm2Encry;
 
 };
 #endif // MAINWINDOW_H

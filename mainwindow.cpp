@@ -31,11 +31,14 @@ MainWindow::MainWindow(QWidget *parent)
     /* 功能1随机数生成实例化 */
     rdNum = new RandNum();
 
+    /* 功能2SM2加解密实例化 */
+    sm2Encry = new Sm2Encrypt();
+
     /* 左侧功能导航 */
     QList <QString>strListWidgetList;
-    strListWidgetList<< "首页" << "随机数生成";
+    strListWidgetList<< "首页" << "随机数生成" << "SM2加解密";
 
-    for (int i = 0; i < 2; i++){
+    for (int i = 0; i < 3; i++){
         /* listWidget 插入项 */
         listWidget->insertItem( i,strListWidgetList[i]);
     }
@@ -44,6 +47,8 @@ MainWindow::MainWindow(QWidget *parent)
     stackedWidget->addWidget(tsHome);
 
     stackedWidget->addWidget(rdNum);
+
+    stackedWidget->addWidget(sm2Encry);
 
     /* 设置列表的最大宽度 */
     listWidget->setMaximumWidth(200);
