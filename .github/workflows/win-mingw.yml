@@ -69,11 +69,15 @@ jobs:
             qt_ver: 6.2.2
             qt_tools: "tools_mingw,9.0.0-1-202111221309,qt.tools.win64_mingw900"
             qt_tools_mingw_install: mingw900_64
+          - qt_arch: win64_mingw
+            qt_ver: 6.2.4
+            qt_tools: "tools_mingw,9.0.0-1-202203221220,qt.tools.win64_mingw900"
+            qt_tools_mingw_install: mingw900_64
     env:
       targetName: HelloActions-Qt.exe
     steps:
       - name: Install Qt
-        uses: jurplel/install-qt-action@v2
+        uses: jurplel/install-qt-action@v3
         with:
           version: ${{ matrix.qt_ver }}
           aqtversion: '==2.0.5'
