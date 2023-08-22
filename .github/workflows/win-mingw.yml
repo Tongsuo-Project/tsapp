@@ -26,7 +26,6 @@ jobs:
           arch: 'win64_mingw'
           dir: '${{ github.workspace }}/QT-CI/'
           install-deps: 'true'
-          modules: 'qtcharts qtwebengine'
           archives: 'qtbase qtsvg'
           cache: 'false'
           cache-key-prefix: 'install-qt-action'
