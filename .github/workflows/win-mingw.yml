@@ -16,6 +16,7 @@ jobs:
     runs-on: windows-latest
     env: 
       targetName: tsapp.exe
+      Qt_qmake_path: ${{ env.Qt6_DIR }}/bin
     steps:
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
