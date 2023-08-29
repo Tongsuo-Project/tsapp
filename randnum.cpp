@@ -1,15 +1,15 @@
 #include "randnum.h"
 #include "ui_randnum.h"
-#include <QLineEdit>
-#include <QTextEdit>
-#include <QString>
-#include <QTextBrowser>
 #include <openssl/rand.h>
 #include <QIntValidator>
+#include <QLineEdit>
+#include <QString>
+#include <QTextBrowser>
+#include <QTextEdit>
 
-RandNum::RandNum(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::RandNum)
+RandNum::RandNum(QWidget *parent)
+    : QWidget(parent)
+    , ui(new Ui::RandNum)
 {
     ui->setupUi(this);
 
@@ -39,8 +39,7 @@ void RandNum::on_pushButtonGen_clicked()
     int ret = RAND_bytes(buf, sizeof(buf));
     if (ret == 0) {
         outputNum->setText(QString("生成失败请重试！"));
-    }
-    else {
+    } else {
         QString res = QString::asprintf("%02X ", buf[0]);
         for (int i = 1; i < randNumByte; ++i) {
             res += QString::asprintf("%02X ", buf[i]);
@@ -48,5 +47,5 @@ void RandNum::on_pushButtonGen_clicked()
         outputNum->setText(res);
     }
 
-    delete [] buf;
+    delete[] buf;
 }

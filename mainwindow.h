@@ -1,12 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QStackedWidget>
-#include <QHBoxLayout>
-#include <QListWidget>
 #include "home.h"
 #include "randnum.h"
+#include <QHBoxLayout>
+#include <QListWidget>
+#include <QMainWindow>
+#include <QStackedWidget>
 
 class MainWindow : public QMainWindow
 {
@@ -15,6 +15,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
 private:
     /* widget 小部件 */
     QWidget *widget;
@@ -28,6 +29,5 @@ private:
     Home *tsHome;
     /* 功能1随机数生成界面 */
     RandNum *rdNum;
-
 };
 #endif // MAINWINDOW_H

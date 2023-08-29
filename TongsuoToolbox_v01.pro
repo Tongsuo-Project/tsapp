@@ -20,23 +20,18 @@ HEADERS += \
     randnum.h
 
 # Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
+target.path = $$(PREFIX)
 !isEmpty(target.path): INSTALLS += target
 
-INCLUDEPATH += Tongsuo\include
-INCLUDEPATH += Tongsuo\providers\implementations\include
-INCLUDEPATH += Tongsuo\providers\common\include
-INCLUDEPATH += Tongsuo\apps\include
-INCLUDEPATH += Tongsuo\crypto\include
+win32: LIBS += -ladvapi32 -lcrypt32 -lgdi32 -luser32 -lws2_32 -L$$(TONGSUO_HOME)/lib -llibcrypto
+else:unix: LIBS += -L$$(TONGSUO_HOME)/lib64 -lcrypto
 
-win32: LIBS += -L$$PWD/Tongsuo/ -lcrypto
+INCLUDEPATH += $$(TONGSUO_HOME)/include
+DEPENDPATH +=  $$(TONGSUO_HOME)/include
 
-INCLUDEPATH += $$PWD/Tongsuo
-DEPENDPATH += $$PWD/Tongsuo
-
-win32:!win32-g++: PRE_TARGETDEPS += $$PWD/Tongsuo/crypto.lib
-else:win32-g++: PRE_TARGETDEPS += $$PWD/Tongsuo/libcrypto.a
+win32-g++: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libcrypto.lib.a
+else:win32:!win32-g++: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libcrypto.lib
+else:unix: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib64/libcrypto.a
 
 FORMS += \
     home.ui \

@@ -32,12 +32,13 @@ MainWindow::MainWindow(QWidget *parent)
     rdNum = new RandNum();
 
     /* 左侧功能导航 */
-    QList <QString>strListWidgetList;
-    strListWidgetList<< "首页" << "随机数生成";
+    QList<QString> strListWidgetList;
+    strListWidgetList << "首页"
+                      << "随机数生成";
 
-    for (int i = 0; i < 2; i++){
+    for (int i = 0; i < 2; i++) {
         /* listWidget 插入项 */
-        listWidget->insertItem( i,strListWidgetList[i]);
+        listWidget->insertItem(i, strListWidgetList[i]);
     }
 
     /* 子页面插入 */
@@ -56,10 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
     widget->setLayout(hBoxLayout);
 
     /* 利用 listWidget 的信号函数 currentRowChanged()与槽函数 setCurrentIndex()进行信号与槽连接*/
-    connect(listWidget, SIGNAL(currentRowChanged(int)),
-            stackedWidget, SLOT(setCurrentIndex(int)));
+    connect(listWidget, SIGNAL(currentRowChanged(int)), stackedWidget, SLOT(setCurrentIndex(int)));
 }
 
-MainWindow::~MainWindow()
-{
-}
+MainWindow::~MainWindow() {}
