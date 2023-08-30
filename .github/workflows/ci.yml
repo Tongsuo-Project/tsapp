@@ -1,0 +1,102 @@
+# Copyright 2023 The Tongsuo Project Authors. All Rights Reserved.
+#
+# Licensed under the Apache License 2.0 (the "License").  You may not use
+# this file except in compliance with the License.  You can obtain a copy
+# in the file LICENSE in the source distribution or at
+# https://github.com/Tongsuo-Project/tsapp/blob/main/LICENSE
+
+name: GitHub CI
+
+on: [pull_request, push]
+
+permissions:
+  contents: read
+
+jobs:
+  check-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install clang-format-15
+
+      - uses: actions/checkout@v3
+      - name: check format
+        run: |
+          clang-format-15 --Werror --dry-run *.cpp *.h
+
+  build-on-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout tongsuo
+        uses: actions/checkout@v3
+        with:
+          repository: Tongsuo-Project/Tongsuo
+          path: Tongsuo
+      - name: build Tongsuo
+        working-directory: ./Tongsuo
+        run: |
+          ./config --banner=Configured --prefix=${RUNNER_TEMP}/tongsuo enable-ntls
+          make -s -j4
+          make install
+
+      - uses: actions/checkout@v3
+      - name: install QT
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: 6.2.4
+
+      - name: build tsapp
+        run: |
+          TONGSUO_HOME=${RUNNER_TEMP}/tongsuo PREFIX=${RUNNER_TEMP}/tsapp qmake
+          make -s -j4
+          make install
+
+  build-on-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: win64
+      - uses: ilammy/setup-nasm@v1
+        with:
+          platform: win64
+      - uses: shogo82148/actions-setup-perl@v1
+      - name: checkout tongsuo
+        uses: actions/checkout@v3
+        with:
+          repository: Tongsuo-Project/Tongsuo
+          path: Tongsuo
+
+      - name: build Tongsuo
+        shell: cmd
+        working-directory: ./Tongsuo
+        run: |
+          mkdir _build
+          pushd _build
+          perl ..\Configure no-makedepend no-shared enable-ntls VC-WIN64A --prefix=%RUNNER_TEMP%\tongsuo
+          nmake /S
+          nmake install_sw
+          popd
+
+      - uses: actions/checkout@v3
+      - name: install QT
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: 6.2.4
+
+      - name: build tsapp
+        shell: cmd
+        run: |
+          set TONGSUO_HOME=%RUNNER_TEMP%\tongsuo
+          set PREFIX=%RUNNER_TEMP%\tsapp
+          qmake
+          nmake /S
+          nmake install
+
+      - name: debug
+        if: ${{ failure() }}
+        shell: cmd
+        run: |
+          type Makefile.Release
