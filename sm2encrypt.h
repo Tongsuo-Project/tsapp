@@ -1,7 +1,16 @@
 #ifndef SM2ENCRYPT_H
 #define SM2ENCRYPT_H
 
+#include <string>
+#include <string.h>
 #include <QWidget>
+#include <stdio.h>
+#include <QplainTextEdit>
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/pem.h>
+#include <openssl/ec.h>
+#include <openssl/bn.h>
 
 namespace Ui {
 class Sm2Encrypt;
@@ -14,6 +23,11 @@ class Sm2Encrypt : public QWidget
 public:
     explicit Sm2Encrypt(QWidget *parent = nullptr);
     ~Sm2Encrypt();
+
+private slots:
+    void on_pushButtonEncrypt_clicked();
+
+    void on_pushButtonDecrypt_clicked();
 
 private:
     Ui::Sm2Encrypt *ui;

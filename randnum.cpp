@@ -29,7 +29,6 @@ void RandNum::on_pushButtonGen_clicked()
     /* 获取用户输入 */
     QString inputByte = this->ui->lineEditInput->text();
     int randNumByte = inputByte.toInt();
-
     unsigned char *buf = new unsigned char[randNumByte];
 
     /* 获取随机数输出栏 */
@@ -38,15 +37,15 @@ void RandNum::on_pushButtonGen_clicked()
     /* 调用Tongsuo中的随机数生成函数 */
     int ret = RAND_bytes(buf, sizeof(buf));
     if (ret == 0) {
-        outputNum->setText(QString("生成失败请重试！"));
+        qDebug() << "false: RAND_bytes" << Qt::endl;
+        return ;
     }
     else {
-        QString res = QString::asprintf("%02X ", buf[0]);
+        QString res = QString::asprintf("%02X", buf[0]);
         for (int i = 1; i < randNumByte; ++i) {
-            res += QString::asprintf("%02X ", buf[i]);
+            res += QString::asprintf("%02X", buf[i]);
         }
         outputNum->setText(res);
     }
-
     delete [] buf;
 }

@@ -13,13 +13,15 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     randnum.cpp \
-    sm2encrypt.cpp
+    sm2encrypt.cpp \
+    sm2key.cpp
 
 HEADERS += \
     home.h \
     mainwindow.h \
     randnum.h \
-    sm2encrypt.h
+    sm2encrypt.h \
+    sm2key.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -43,7 +45,8 @@ else:win32-g++: PRE_TARGETDEPS += $$PWD/Tongsuo/libcrypto.a
 FORMS += \
     home.ui \
     randnum.ui \
-    sm2encrypt.ui
+    sm2encrypt.ui \
+    sm2key.ui
 
 RESOURCES += \
     images.qrc
