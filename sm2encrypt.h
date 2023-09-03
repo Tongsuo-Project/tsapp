@@ -1,6 +1,5 @@
 #ifndef SM2ENCRYPT_H
 #define SM2ENCRYPT_H
-
 #include <string>
 #include <string.h>
 #include <QWidget>

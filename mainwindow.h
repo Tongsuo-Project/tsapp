@@ -1,6 +1,5 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-
 #include "home.h"
 #include "randnum.h"
 #include "sm2encrypt.h"

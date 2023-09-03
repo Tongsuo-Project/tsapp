@@ -27,7 +27,7 @@ HEADERS += \
 target.path = $$(PREFIX)
 !isEmpty(target.path): INSTALLS += target
 
-win32: LIBS += -ladvapi32 -lcrypt32 -lgdi32 -luser32 -lws2_32 -L$$(TONGSUO_HOME)/lib -llibcrypto
+win32: LIBS += -ladvapi32 -lcrypt32 -lgdi32 -luser32 -lws2_32 -L$$(TONGSUO_HOME)/lib -lcrypto
 else:unix: LIBS += -L$$(TONGSUO_HOME)/lib64 -lcrypto
 
 INCLUDEPATH += $$(TONGSUO_HOME)/include

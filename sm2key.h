@@ -17,7 +17,7 @@ class Sm2Key : public QWidget
 public:
     explicit Sm2Key(QWidget *parent = nullptr);
     ~Sm2Key();
-    EC_KEY* genSm2Key();
+    EC_KEY *genSm2Key();
 
 private slots:
     void on_pushButtonGen_clicked();

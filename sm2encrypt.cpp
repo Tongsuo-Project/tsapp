@@ -34,18 +34,19 @@ void Sm2Encrypt::on_pushButtonEncrypt_clicked()
     EVP_PKEY_encrypt_init(pkCtx);
     /* 获取输入明文 */
     QString plainTextQstr = this->ui->plainTextEditInput->toPlainText();
+    const unsigned char *plainTextIn =  (const unsigned char *)plainTextQstr.toStdString().c_str();
     /* 获取加密密文长度 */
     size_t cipherTextLen = 0;
-    EVP_PKEY_encrypt(pkCtx, NULL, &cipherTextLen, (const unsigned char*) plainTextQstr.toStdString().c_str(), plainTextQstr.size());
+    EVP_PKEY_encrypt(pkCtx, NULL, &cipherTextLen, plainTextIn, plainTextQstr.size());
     /* 加密生成密文 */
     unsigned char *cipherText = new unsigned char[cipherTextLen];
-    EVP_PKEY_encrypt(pkCtx, cipherText, &cipherTextLen, (const unsigned char*) plainTextQstr.toStdString().c_str(), plainTextQstr.size());
+    EVP_PKEY_encrypt(pkCtx, cipherText, &cipherTextLen, plainTextIn, plainTextQstr.size());
     /* 以16进制字符串的形式显示在输出框 */
     char *outBuf = OPENSSL_buf2hexstr(cipherText, cipherTextLen);
     this->ui->plainTextEditOutput->setPlainText(QString(outBuf));
     /* 释放内存资源 */
     OPENSSL_free(outBuf);
-    delete [] cipherText;
+    delete[] cipherText;
     EVP_PKEY_CTX_free(pkCtx);
     EVP_PKEY_free(pKey);
     EC_POINT_free(pubPoint);
@@ -57,7 +58,6 @@ void Sm2Encrypt::on_pushButtonDecrypt_clicked()
 {
     /* 选定椭圆曲线组 */
     EC_GROUP *group = EC_GROUP_new_by_curve_name(NID_sm2);
-    if (!group) return ;
     /* 给EC_KEY设定曲线组 */
     EC_KEY *ecKey = EC_KEY_new();
     EC_KEY_set_group(ecKey, group);
