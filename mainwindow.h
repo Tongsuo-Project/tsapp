@@ -1,14 +1,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QStackedWidget>
-#include <QHBoxLayout>
-#include <QListWidget>
 #include "home.h"
 #include "randnum.h"
 #include "sm2encrypt.h"
 #include "sm2key.h"
+#include <QHBoxLayout>
+#include <QListWidget>
+#include <QMainWindow>
+#include <QStackedWidget>
 
 class MainWindow : public QMainWindow
 {
@@ -17,6 +17,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
 private:
     /* widget 小部件 */
     QWidget *widget;
@@ -34,6 +35,5 @@ private:
     Sm2Key *sm2Key;
     /* 功能3 sm2加密界面*/
     Sm2Encrypt *sm2Encry;
-
 };
 #endif // MAINWINDOW_H

@@ -7,10 +7,8 @@
 #include <stdio.h>
 #include <QplainTextEdit>
 #include <openssl/evp.h>
-#include <openssl/bio.h>
-#include <openssl/pem.h>
 #include <openssl/ec.h>
-#include <openssl/bn.h>
+#include <openssl/crypto.h>
 
 namespace Ui {
 class Sm2Encrypt;

@@ -1,18 +1,11 @@
 #include "randnum.h"
 #include "ui_randnum.h"
-#include <QLineEdit>
-#include <QTextEdit>
-#include <QString>
-#include <QTextBrowser>
-#include <openssl/rand.h>
-#include <QIntValidator>
 
-RandNum::RandNum(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::RandNum)
+RandNum::RandNum(QWidget *parent)
+    : QWidget(parent)
+    , ui(new Ui::RandNum)
 {
     ui->setupUi(this);
-
     /* 限制只能输入整数且范围为[1，256]*/
     QIntValidator *aIntValidator = new QIntValidator;
     aIntValidator->setRange(1, 256);
@@ -30,22 +23,16 @@ void RandNum::on_pushButtonGen_clicked()
     QString inputByte = this->ui->lineEditInput->text();
     int randNumByte = inputByte.toInt();
     unsigned char *buf = new unsigned char[randNumByte];
-
     /* 获取随机数输出栏 */
     QTextBrowser *outputNum = this->ui->textBrowserOutput;
-
     /* 调用Tongsuo中的随机数生成函数 */
-    int ret = RAND_bytes(buf, sizeof(buf));
+    int ret = RAND_bytes(buf, randNumByte);
     if (ret == 0) {
-        qDebug() << "false: RAND_bytes" << Qt::endl;
-        return ;
+        return;
+    } else {
+        char *outBuf = OPENSSL_buf2hexstr(buf, randNumByte);
+        outputNum->setText(QString(outBuf));
     }
-    else {
-        QString res = QString::asprintf("%02X", buf[0]);
-        for (int i = 1; i < randNumByte; ++i) {
-            res += QString::asprintf("%02X", buf[i]);
-        }
-        outputNum->setText(res);
-    }
+    /* 释放内存 */
     delete [] buf;
 }

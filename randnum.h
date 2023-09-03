@@ -2,6 +2,12 @@
 #define RANDNUM_H
 
 #include <QWidget>
+#include <openssl/rand.h>
+#include <QIntValidator>
+#include <QLineEdit>
+#include <QString>
+#include <QTextBrowser>
+#include <QTextEdit>
 
 namespace Ui {
 class RandNum;

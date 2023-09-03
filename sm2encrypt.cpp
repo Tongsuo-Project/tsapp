@@ -45,7 +45,7 @@ void Sm2Encrypt::on_pushButtonEncrypt_clicked()
     char *outBuf = OPENSSL_buf2hexstr(cipherText, cipherTextLen);
     this->ui->plainTextEditOutput->setPlainText(QString(outBuf));
     /* 释放内存资源 */
-    delete [] outBuf;
+    OPENSSL_free(outBuf);
     delete [] cipherText;
     EVP_PKEY_CTX_free(pkCtx);
     EVP_PKEY_free(pKey);
@@ -88,7 +88,6 @@ void Sm2Encrypt::on_pushButtonDecrypt_clicked()
     /* 将明文内容显示到输出框 */
     this->ui->plainTextEditOutput->setPlainText(QString::asprintf("%s", plainText));
     /* 释放内存资源 */
-    delete [] inBuf;
     delete [] plainText;
     EVP_PKEY_CTX_free(pkCtx);
     EVP_PKEY_free(pKey);
