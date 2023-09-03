@@ -34,5 +34,5 @@ void RandNum::on_pushButtonGen_clicked()
         outputNum->setText(QString(outBuf));
     }
     /* 释放内存 */
-    delete [] buf;
+    delete[] buf;
 }

@@ -1,6 +1,5 @@
 #ifndef SM2KEY_H
 #define SM2KEY_H
-
 #include <QWidget>
 #include <openssl/evp.h>
 #include "openssl/ec.h"
@@ -25,8 +24,6 @@ private slots:
 
 private:
     Ui::Sm2Key *ui;
-
-
 };
 
 #endif // SM2KEY_H
