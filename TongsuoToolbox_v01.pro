@@ -27,13 +27,13 @@ HEADERS += \
 target.path = $$(PREFIX)
 !isEmpty(target.path): INSTALLS += target
 
-win32: LIBS += -ladvapi32 -lcrypt32 -lgdi32 -luser32 -lws2_32 -L$$(TONGSUO_HOME)/lib -lcrypto
+win32: LIBS += -ladvapi32 -lcrypt32 -lgdi32 -luser32 -lws2_32 -L$$(TONGSUO_HOME)/lib -llibcrypto
 else:unix: LIBS += -L$$(TONGSUO_HOME)/lib64 -lcrypto
 
 INCLUDEPATH += $$(TONGSUO_HOME)/include
 DEPENDPATH +=  $$(TONGSUO_HOME)/include
 
-win32-g++: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libcrypto.a
+win32-g++: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libcrypto.lib.a
 else:win32:!win32-g++: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libcrypto.lib
 else:unix: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib64/libcrypto.a
 

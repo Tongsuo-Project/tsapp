@@ -1,5 +1,6 @@
 #ifndef SM2KEY_H
 #define SM2KEY_H
+
 #include <QWidget>
 #include <openssl/evp.h>
 #include "openssl/ec.h"

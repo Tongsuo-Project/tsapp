@@ -34,7 +34,7 @@ void Sm2Encrypt::on_pushButtonEncrypt_clicked()
     EVP_PKEY_encrypt_init(pkCtx);
     /* 获取输入明文 */
     QString plainTextQstr = this->ui->plainTextEditInput->toPlainText();
-    const unsigned char *plainTextIn =  (const unsigned char *)plainTextQstr.toStdString().c_str();
+    const unsigned char *plainTextIn = (const unsigned char *)plainTextQstr.toStdString().c_str();
     /* 获取加密密文长度 */
     size_t cipherTextLen = 0;
     EVP_PKEY_encrypt(pkCtx, NULL, &cipherTextLen, plainTextIn, plainTextQstr.size());

@@ -1,13 +1,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
+
+#include <QMainWindow>
+#include <QHBoxLayout>
+#include <QListWidget>
+#include <QStackedWidget>
 #include "home.h"
 #include "randnum.h"
 #include "sm2encrypt.h"
 #include "sm2key.h"
-#include <QHBoxLayout>
-#include <QListWidget>
-#include <QMainWindow>
-#include <QStackedWidget>
 
 class MainWindow : public QMainWindow
 {
