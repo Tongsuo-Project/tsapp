@@ -1,14 +1,14 @@
 #ifndef SM2ENCRYPT_H
 #define SM2ENCRYPT_H
 
-#include <string>
-#include <string.h>
-#include <QWidget>
-#include <stdio.h>
-#include <QplainTextEdit>
 #include <openssl/evp.h>
 #include <openssl/ec.h>
 #include <openssl/crypto.h>
+#include <string.h>
+#include <stdio.h>
+#include <string>
+#include <QWidget>
+#include <QplainTextEdit>
 
 namespace Ui {
 class Sm2Encrypt;

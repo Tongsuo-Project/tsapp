@@ -27,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
     sm2Encry = new Sm2Encrypt();
     /* 左侧功能导航 */
     QList<QString> strListWidgetList;
-    strListWidgetList<<"首页"<<"随机数生成"<<"SM2密钥生成"<<"SM2加解密";
+    strListWidgetList << "首页" << "随机数生成" << "SM2密钥生成" << "SM2加解密";
     for (int i = 0; i < 4; i++) {
         /* listWidget 插入项 */
         listWidget->insertItem(i, strListWidgetList[i]);

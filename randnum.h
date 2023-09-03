@@ -1,8 +1,8 @@
 #ifndef RANDNUM_H
 #define RANDNUM_H
 
-#include <QWidget>
 #include <openssl/rand.h>
+#include <QWidget>
 #include <QIntValidator>
 #include <QLineEdit>
 #include <QString>
