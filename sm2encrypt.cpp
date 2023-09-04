@@ -34,13 +34,21 @@ void Sm2Encrypt::on_pushButtonEncrypt_clicked()
     EVP_PKEY_encrypt_init(pkCtx);
     /* 获取输入明文 */
     QString plainTextQstr = this->ui->plainTextEditInput->toPlainText();
-    const unsigned char *plainTextIn = (const unsigned char *) plainTextQstr.toStdString().c_str();
+    //const unsigned char *plainTextIn = (const unsigned char *) plainTextQstr.toStdString().c_str();
     /* 获取加密密文长度 */
     size_t cipherTextLen = 0;
-    EVP_PKEY_encrypt(pkCtx, NULL, &cipherTextLen, plainTextIn, plainTextQstr.size());
+    EVP_PKEY_encrypt(pkCtx,
+                     NULL,
+                     &cipherTextLen,
+                     (const unsigned char *) plainTextQstr.toStdString().c_str(),
+                     plainTextQstr.size());
     /* 加密生成密文 */
     unsigned char *cipherText = new unsigned char[cipherTextLen];
-    EVP_PKEY_encrypt(pkCtx, cipherText, &cipherTextLen, plainTextIn, plainTextQstr.size());
+    EVP_PKEY_encrypt(pkCtx,
+                     cipherText,
+                     &cipherTextLen,
+                     (const unsigned char *) plainTextQstr.toStdString().c_str(),
+                     plainTextQstr.size());
     /* 以16进制字符串的形式显示在输出框 */
     char *outBuf = OPENSSL_buf2hexstr(cipherText, cipherTextLen);
     this->ui->plainTextEditOutput->setPlainText(QString(outBuf));
@@ -85,7 +93,8 @@ void Sm2Encrypt::on_pushButtonDecrypt_clicked()
     unsigned char *plainText = new unsigned char[plainTextLen];
     EVP_PKEY_decrypt(pkCtx, plainText, &plainTextLen, inBuf, inBufLen);
     /* 将明文内容显示到输出框 */
-    this->ui->plainTextEditOutput->setPlainText(QString::asprintf("%s", plainText));
+    std::string outStr((const char *) plainText, plainTextLen);
+    this->ui->plainTextEditOutput->setPlainText(QString::fromStdString(outStr));
     /* 释放内存资源 */
     delete[] plainText;
     EVP_PKEY_CTX_free(pkCtx);
