@@ -1,10 +1,10 @@
 #ifndef SM2KEY_H
 #define SM2KEY_H
 
-#include <openssl/evp.h>
 #include "openssl/ec.h"
-#include <openssl/x509.h>
 #include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/x509.h>
 #include <QWidget>
 
 namespace Ui {

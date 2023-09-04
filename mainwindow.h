@@ -5,11 +5,10 @@
 #include "randnum.h"
 #include "sm2encrypt.h"
 #include "sm2key.h"
-#include <QMainWindow>
 #include <QHBoxLayout>
 #include <QListWidget>
+#include <QMainWindow>
 #include <QStackedWidget>
-
 
 class MainWindow : public QMainWindow
 {

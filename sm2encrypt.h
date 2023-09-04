@@ -1,11 +1,11 @@
 #ifndef SM2ENCRYPT_H
 #define SM2ENCRYPT_H
 
-#include <openssl/evp.h>
-#include <openssl/ec.h>
 #include <openssl/crypto.h>
-#include <string.h>
+#include <openssl/ec.h>
+#include <openssl/evp.h>
 #include <stdio.h>
+#include <string.h>
 #include <string>
 #include <QWidget>
 #include <QplainTextEdit>
