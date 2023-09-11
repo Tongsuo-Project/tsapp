@@ -1,6 +1,8 @@
 #ifndef RANDNUM_H
 #define RANDNUM_H
 
+#include "tserror.h"
+#include <memory>
 #include <openssl/rand.h>
 #include <QIntValidator>
 #include <QLineEdit>

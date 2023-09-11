@@ -22,17 +22,19 @@ void RandNum::on_pushButtonGen_clicked()
     /* 获取用户输入 */
     QString inputByte = this->ui->lineEditInput->text();
     int randNumByte = inputByte.toInt();
-    unsigned char *buf = new unsigned char[randNumByte];
+    std::unique_ptr<unsigned char> buf(new unsigned char[randNumByte]);
     /* 获取随机数输出栏 */
     QTextBrowser *outputNum = this->ui->textBrowserOutput;
-    /* 调用Tongsuo中的随机数生成函数 */
-    int ret = RAND_bytes(buf, randNumByte);
+    /* 调用随机数生成函数 */
+    int ret = RAND_bytes(buf.get(), randNumByte);
     if (ret == 0) {
+        /* 生成失败弹窗 */
+        getError();
         return;
     } else {
-        char *outBuf = OPENSSL_buf2hexstr(buf, randNumByte);
-        outputNum->setText(QString(outBuf));
+        /* 生成成功将结果写到输出框 */
+        std::shared_ptr<char> outBuf(OPENSSL_buf2hexstr(buf.get(), randNumByte),
+                                     [](char *outbuf) { OPENSSL_free(outbuf); });
+        outputNum->setText(QString(outBuf.get()));
     }
-    /* 释放内存 */
-    delete[] buf;
 }

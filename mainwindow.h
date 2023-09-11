@@ -29,11 +29,11 @@ private:
     QStackedWidget *stackedWidget;
     /* 首页界面 */
     Home *tsHome;
-    /* 功能1 随机数生成界面 */
+    /* 随机数生成界面 */
     RandNum *rdNum;
-    /* 功能2 sm2密钥生成*/
+    /* sm2密钥生成*/
     Sm2Key *sm2Key;
-    /* 功能3 sm2加密界面*/
+    /* sm2加密界面*/
     Sm2Encrypt *sm2Encry;
 };
 #endif // MAINWINDOW_H

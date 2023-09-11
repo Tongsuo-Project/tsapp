@@ -1,6 +1,8 @@
 #ifndef SM2ENCRYPT_H
 #define SM2ENCRYPT_H
 
+#include "tserror.h"
+#include <memory>
 #include <openssl/crypto.h>
 #include <openssl/ec.h>
 #include <openssl/evp.h>

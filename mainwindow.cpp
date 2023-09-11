@@ -19,11 +19,11 @@ MainWindow::MainWindow(QWidget *parent)
     listWidget = new QListWidget();
     /* 首页实例化 */
     tsHome = new Home();
-    /* 功能1 随机数生成实例化 */
+    /* 随机数生成实例化 */
     rdNum = new RandNum();
-    /* 功能2 SM2密钥生成实例化 */
+    /* SM2密钥生成实例化 */
     sm2Key = new Sm2Key();
-    /* 功能3 SM2加解密实例化 */
+    /* SM2加解密实例化 */
     sm2Encry = new Sm2Encrypt();
     /* 左侧功能导航 */
     QList<QString> strListWidgetList;

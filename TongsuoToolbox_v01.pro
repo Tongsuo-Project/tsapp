@@ -14,14 +14,16 @@ SOURCES += \
     mainwindow.cpp \
     randnum.cpp \
     sm2encrypt.cpp \
-    sm2key.cpp
+    sm2key.cpp \
+    tserror.cpp
 
 HEADERS += \
     home.h \
     mainwindow.h \
     randnum.h \
     sm2encrypt.h \
-    sm2key.h
+    sm2key.h \
+    tserror.h
 
 # Default rules for deployment.
 target.path = $$(PREFIX)

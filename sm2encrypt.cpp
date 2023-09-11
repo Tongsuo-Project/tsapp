@@ -16,90 +16,93 @@ Sm2Encrypt::~Sm2Encrypt()
 void Sm2Encrypt::on_pushButtonEncrypt_clicked()
 {
     /* 选定椭圆曲线组 */
-    EC_GROUP *group = EC_GROUP_new_by_curve_name(NID_sm2);
-    /* 给EC_KEY设定曲线组*/
-    EC_KEY *ecKey = EC_KEY_new();
-    EC_KEY_set_group(ecKey, group);
+    std::shared_ptr<EC_GROUP> group(EC_GROUP_new_by_curve_name(NID_sm2), EC_GROUP_free);
+    /* 密钥上下文生成 */
+    std::shared_ptr<EC_KEY> eckey(EC_KEY_new(), EC_KEY_free);
+    /* 设定密钥的曲线组 */
+    EC_KEY_set_group(eckey.get(), group.get());
     /* 获取用户输入的公钥 */
     QString pubQstrInput = this->ui->lineEditPub->text();
     /* 将16进制字符串公钥转为EC_POINT，并设置到EC_KEY */
-    EC_POINT *pubPoint = EC_POINT_hex2point(group, pubQstrInput.toStdString().c_str(), NULL, NULL);
-    EC_KEY_set_public_key(ecKey, pubPoint);
+    const EC_POINT *pubPoint
+        = EC_POINT_hex2point(group.get(), pubQstrInput.toStdString().c_str(), NULL, NULL);
+    EC_KEY_set_public_key(eckey.get(), pubPoint);
     /* 将EC_KEY设置到EVP_PKEY */
-    EVP_PKEY *pKey = EVP_PKEY_new();
-    EVP_PKEY_set1_EC_KEY(pKey, ecKey);
+    std::shared_ptr<EVP_PKEY> pKey(EVP_PKEY_new(), EVP_PKEY_free);
+    EVP_PKEY_set1_EC_KEY(pKey.get(), eckey.get());
     /* 生成加密上下文 */
-    EVP_PKEY_CTX *pkCtx = EVP_PKEY_CTX_new(pKey, NULL);
+    std::shared_ptr<EVP_PKEY_CTX> pkCtx(EVP_PKEY_CTX_new(pKey.get(), NULL), EVP_PKEY_CTX_free);
     /* 加密初始化 */
-    EVP_PKEY_encrypt_init(pkCtx);
+    if (EVP_PKEY_encrypt_init(pkCtx.get()) <= 0) {
+        getError();
+        return;
+    }
     /* 获取输入明文 */
     QString plainTextQstr = this->ui->plainTextEditInput->toPlainText();
-    //const unsigned char *plainTextIn = (const unsigned char *) plainTextQstr.toStdString().c_str();
     /* 获取加密密文长度 */
     size_t cipherTextLen = 0;
-    EVP_PKEY_encrypt(pkCtx,
-                     NULL,
-                     &cipherTextLen,
-                     (const unsigned char *) plainTextQstr.toStdString().c_str(),
-                     plainTextQstr.size());
+    int res = EVP_PKEY_encrypt(pkCtx.get(),
+                               NULL,
+                               &cipherTextLen,
+                               (const unsigned char *) plainTextQstr.toStdString().c_str(),
+                               plainTextQstr.size());
+    if (res != 1) {
+        getError();
+        return;
+    }
     /* 加密生成密文 */
-    unsigned char *cipherText = new unsigned char[cipherTextLen];
-    EVP_PKEY_encrypt(pkCtx,
-                     cipherText,
-                     &cipherTextLen,
-                     (const unsigned char *) plainTextQstr.toStdString().c_str(),
-                     plainTextQstr.size());
+    std::shared_ptr<unsigned char> cipherText(new unsigned char[cipherTextLen]);
+    res = EVP_PKEY_encrypt(pkCtx.get(),
+                           cipherText.get(),
+                           &cipherTextLen,
+                           (const unsigned char *) plainTextQstr.toStdString().c_str(),
+                           plainTextQstr.size());
+    if (res != 1) {
+        getError();
+        return;
+    }
     /* 以16进制字符串的形式显示在输出框 */
-    char *outBuf = OPENSSL_buf2hexstr(cipherText, cipherTextLen);
-    this->ui->plainTextEditOutput->setPlainText(QString(outBuf));
-    /* 释放内存资源 */
-    OPENSSL_free(outBuf);
-    delete[] cipherText;
-    EVP_PKEY_CTX_free(pkCtx);
-    EVP_PKEY_free(pKey);
-    EC_POINT_free(pubPoint);
-    EC_GROUP_free(group);
-    EC_KEY_free(ecKey);
+    std::shared_ptr<char> outBuf(OPENSSL_buf2hexstr(cipherText.get(), cipherTextLen),
+                                 [](char *outbuf) { OPENSSL_free(outbuf); });
+    this->ui->plainTextEditOutput->setPlainText(QString(outBuf.get()));
 }
 
 void Sm2Encrypt::on_pushButtonDecrypt_clicked()
 {
     /* 选定椭圆曲线组 */
-    EC_GROUP *group = EC_GROUP_new_by_curve_name(NID_sm2);
-    /* 给EC_KEY设定曲线组 */
-    EC_KEY *ecKey = EC_KEY_new();
-    EC_KEY_set_group(ecKey, group);
+    std::shared_ptr<EC_GROUP> group(EC_GROUP_new_by_curve_name(NID_sm2), EC_GROUP_free);
+    /* 密钥上下文生成 */
+    std::shared_ptr<EC_KEY> ecKey(EC_KEY_new(), EC_KEY_free);
+    /* 设定密钥的曲线组 */
+    EC_KEY_set_group(ecKey.get(), group.get());
     /* 获取用户输入的私钥 */
     QString priQstrInput = this->ui->lineEditPri->text();
     /* 将16进制字符串私钥转为BIGNUM，并设置到EC_KEY */
     BIGNUM *priBn = BN_new();
     BN_hex2bn(&priBn, priQstrInput.toStdString().c_str());
-    EC_KEY_set_private_key(ecKey, priBn);
+    EC_KEY_set_private_key(ecKey.get(), priBn);
+    BN_free(priBn);
     /* 将EC_KEY设置到EVP_PKEY */
-    EVP_PKEY *pKey = EVP_PKEY_new();
-    EVP_PKEY_set1_EC_KEY(pKey, ecKey);
+    std::shared_ptr<EVP_PKEY> pKey(EVP_PKEY_new(), EVP_PKEY_free);
+    EVP_PKEY_set1_EC_KEY(pKey.get(), ecKey.get());
     /* 生成解密上下文 */
-    EVP_PKEY_CTX *pkCtx = EVP_PKEY_CTX_new(pKey, NULL);
+    std::shared_ptr<EVP_PKEY_CTX> pkCtx(EVP_PKEY_CTX_new(pKey.get(), NULL), EVP_PKEY_CTX_free);
     /* 解密初始化 */
-    EVP_PKEY_decrypt_init(pkCtx);
+    if (EVP_PKEY_decrypt_init(pkCtx.get()) <= 0) {
+        getError();
+        return;
+    }
     /* 获取输入密文 */
     QString cipherTextQstr = this->ui->plainTextEditInput->toPlainText();
     long inBufLen = 0;
     const unsigned char *inBuf = OPENSSL_hexstr2buf(cipherTextQstr.toStdString().c_str(), &inBufLen);
     /* 获取解密明文长度 */
     size_t plainTextLen = 0;
-    EVP_PKEY_decrypt(pkCtx, NULL, &plainTextLen, inBuf, inBufLen);
+    EVP_PKEY_decrypt(pkCtx.get(), NULL, &plainTextLen, inBuf, inBufLen);
     /* 解密 生成明文 */
-    unsigned char *plainText = new unsigned char[plainTextLen];
-    EVP_PKEY_decrypt(pkCtx, plainText, &plainTextLen, inBuf, inBufLen);
+    std::shared_ptr<unsigned char> plainText(new unsigned char[plainTextLen]);
+    EVP_PKEY_decrypt(pkCtx.get(), plainText.get(), &plainTextLen, inBuf, inBufLen);
     /* 将明文内容显示到输出框 */
-    std::string outStr((const char *) plainText, plainTextLen);
+    std::string outStr((const char *) plainText.get(), plainTextLen);
     this->ui->plainTextEditOutput->setPlainText(QString::fromStdString(outStr));
-    /* 释放内存资源 */
-    delete[] plainText;
-    EVP_PKEY_CTX_free(pkCtx);
-    EVP_PKEY_free(pKey);
-    BN_free(priBn);
-    EC_GROUP_free(group);
-    EC_KEY_free(ecKey);
 }
