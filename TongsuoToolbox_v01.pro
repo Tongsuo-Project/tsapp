@@ -15,6 +15,7 @@ SOURCES += \
     randnum.cpp \
     sm2encrypt.cpp \
     sm2key.cpp \
+    sm3hash.cpp \
     tserror.cpp
 
 HEADERS += \
@@ -23,6 +24,7 @@ HEADERS += \
     randnum.h \
     sm2encrypt.h \
     sm2key.h \
+    sm3hash.h \
     tserror.h
 
 # Default rules for deployment.
@@ -43,7 +45,8 @@ FORMS += \
     home.ui \
     randnum.ui \
     sm2encrypt.ui \
-    sm2key.ui
+    sm2key.ui \
+    sm3hash.ui
 
 RESOURCES += \
     images.qrc
