@@ -20,5 +20,5 @@ void Home::paintEvent(QPaintEvent *event)
     QPixmap pixmap = QPixmap("://images/HomeBackground.png")
                          .scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     QPainter painter(this);
-    painter.drawPixmap(this->rect(), pixmap); //画家画图片
+    painter.drawPixmap(this->rect(), pixmap);
 }

@@ -12,12 +12,18 @@ SOURCES += \
     home.cpp \
     main.cpp \
     mainwindow.cpp \
-    randnum.cpp
+    randnum.cpp \
+    sm2encrypt.cpp \
+    sm2key.cpp \
+    tserror.cpp
 
 HEADERS += \
     home.h \
     mainwindow.h \
-    randnum.h
+    randnum.h \
+    sm2encrypt.h \
+    sm2key.h \
+    tserror.h
 
 # Default rules for deployment.
 target.path = $$(PREFIX)
@@ -35,7 +41,9 @@ else:unix: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib64/libcrypto.a
 
 FORMS += \
     home.ui \
-    randnum.ui
+    randnum.ui \
+    sm2encrypt.ui \
+    sm2key.ui
 
 RESOURCES += \
     images.qrc

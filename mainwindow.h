@@ -3,6 +3,8 @@
 
 #include "home.h"
 #include "randnum.h"
+#include "sm2encrypt.h"
+#include "sm2key.h"
 #include <QHBoxLayout>
 #include <QListWidget>
 #include <QMainWindow>
@@ -27,7 +29,11 @@ private:
     QStackedWidget *stackedWidget;
     /* 首页界面 */
     Home *tsHome;
-    /* 功能1随机数生成界面 */
+    /* 随机数生成界面 */
     RandNum *rdNum;
+    /* sm2密钥生成*/
+    Sm2Key *sm2Key;
+    /* sm2加密界面*/
+    Sm2Encrypt *sm2Encry;
 };
 #endif // MAINWINDOW_H
