@@ -5,6 +5,7 @@
 #include "randnum.h"
 #include "sm2encrypt.h"
 #include "sm2key.h"
+#include "sm3hash.h"
 #include <QHBoxLayout>
 #include <QListWidget>
 #include <QMainWindow>
@@ -35,5 +36,7 @@ private:
     Sm2Key *sm2Key;
     /* sm2加密界面*/
     Sm2Encrypt *sm2Encry;
+    /* sm3哈希界面 */
+    Sm3Hash *sm3Hash;
 };
 #endif // MAINWINDOW_H
