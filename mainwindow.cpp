@@ -27,14 +27,17 @@ MainWindow::MainWindow(QWidget *parent)
     sm2Encry = new Sm2Encrypt();
     /* SM3哈希实例化 */
     sm3Hash = new Sm3Hash();
+    /* SM2签名验签实例化 */
+    sm2SignVerify = new Sm2SignVerify();
     /* 左侧功能导航 */
     QList<QString> strListWidgetList;
     strListWidgetList << "首页"
                       << "随机数生成"
                       << "SM2密钥生成"
                       << "SM2加解密"
-                      << "SM3哈希";
-    for (int i = 0; i < 5; i++) {
+                      << "SM3哈希"
+                      << "SM2签名验签";
+    for (int i = 0; i < 6; i++) {
         /* listWidget 插入项 */
         listWidget->insertItem(i, strListWidgetList[i]);
     }
@@ -44,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent)
     stackedWidget->addWidget(sm2Key);
     stackedWidget->addWidget(sm2Encry);
     stackedWidget->addWidget(sm3Hash);
+    stackedWidget->addWidget(sm2SignVerify);
     /* 设置列表的最大宽度 */
     listWidget->setMaximumWidth(200);
     /* 添加到水平布局 */
