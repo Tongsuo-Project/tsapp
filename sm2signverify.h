@@ -6,6 +6,7 @@
 #include <openssl/bn.h>
 #include <openssl/ec.h>
 #include <openssl/evp.h>
+#include <string.h>
 #include <QWidget>
 namespace Ui {
 class Sm2SignVerify;

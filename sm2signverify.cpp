@@ -80,49 +80,34 @@ void Sm2SignVerify::on_pushButtonSign_clicked()
     BN_hex2bn(&priBn, priQstr.toStdString().c_str());
     EC_KEY_set_private_key(ecKey.get(), priBn);
     BN_free(priBn);
+    /* 将16进制字符串公钥转为ECPOINT，并设置到EC_KEY */
+    QString pubQstrInput = this->ui->plainTextEditPubKey->toPlainText();
+    const EC_POINT *pubPoint
+        = EC_POINT_hex2point(group.get(), pubQstrInput.toStdString().c_str(), NULL, NULL);
+    EC_KEY_set_public_key(ecKey.get(), pubPoint);
     /* 将EC_KEY设置到EVP_PKEY */
     std::shared_ptr<EVP_PKEY> pKey(EVP_PKEY_new(), EVP_PKEY_free);
     EVP_PKEY_set1_EC_KEY(pKey.get(), ecKey.get());
-
-    /* 进行哈希生成摘要 */
+    /* 签名上下文及初始化 */
     size_t siglen = 0;
-    unsigned char md[32] = {};
-    size_t mdlen = 0;
-    if (!EVP_Q_digest(
-            NULL, "SM3", NULL, inputQstr.toStdString().c_str(), inputQstr.size(), md, &mdlen)) {
-        /* 错误处理 */
+    std::shared_ptr<EVP_MD_CTX> mctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+    if (!EVP_DigestSignInit(mctx.get(), NULL, EVP_sm3(), NULL, pKey.get())
+        || !EVP_DigestSign(mctx.get(),
+                           NULL,
+                           &siglen,
+                           (unsigned char *) inputQstr.toStdString().c_str(),
+                           inputQstr.size())) {
         getError();
         return;
     }
-    /*对数据签名*/
-    std::shared_ptr<EVP_PKEY_CTX> pctx(EVP_PKEY_CTX_new(pKey.get(), NULL), EVP_PKEY_CTX_free);
-    if (pctx == NULL) {
-        /* 错误处理 */
-        getError();
-        return;
-    }
-    if (EVP_PKEY_sign_init(pctx.get()) <= 0) {
-        /* 错误处理 */
-        getError();
-        return;
-    }
-    if (EVP_PKEY_sign(pctx.get(), NULL, &siglen, md, mdlen) <= 0) {
-        /* 错误处理 */
-        getError();
-        return;
-    }
+    /* 签名 */
     std::shared_ptr<unsigned char> sig((unsigned char *) OPENSSL_malloc(siglen),
                                        [](unsigned char *buf) { OPENSSL_free(buf); });
-    if (sig == NULL) {
-        /* 错误处理 */
-        getError();
-        return;
-    }
-    if (EVP_PKEY_sign(pctx.get(), sig.get(), &siglen, md, mdlen) <= 0) {
-        /* 错误处理 */
-        getError();
-        return;
-    }
+    EVP_DigestSign(mctx.get(),
+                   sig.get(),
+                   &siglen,
+                   (unsigned char *) inputQstr.toStdString().c_str(),
+                   inputQstr.size());
     /* 显示十六进制字符串到输出框 */
     std::shared_ptr<char> out(OPENSSL_buf2hexstr(sig.get(), siglen),
                               [](char *buf) { OPENSSL_free(buf); });
@@ -135,16 +120,8 @@ void Sm2SignVerify::on_pushButtonVerify_clicked()
     QString inputQstr = this->ui->lineEditInput->text();
     /* 获取签名 */
     QString signQstr = this->ui->plainTextEditOutput->toPlainText();
-    /* 进行哈希生成摘要 */
-    unsigned char md[32] = {};
-    size_t mdlen = 0;
-    if (!EVP_Q_digest(
-            NULL, "SM3", NULL, inputQstr.toStdString().c_str(), inputQstr.size(), md, &mdlen)) {
-        /* 错误处理 */
-        getError();
-        return;
-    }
-
+    long siglen = signQstr.size();
+    const unsigned char *sig = OPENSSL_hexstr2buf(signQstr.toStdString().c_str(), &siglen);
     /* 选定椭圆曲线组 */
     std::shared_ptr<EC_GROUP> group(EC_GROUP_new_by_curve_name(NID_sm2), EC_GROUP_free);
     /* 密钥上下文生成 */
@@ -160,23 +137,18 @@ void Sm2SignVerify::on_pushButtonVerify_clicked()
     /* 将EC_KEY设置到EVP_PKEY */
     std::shared_ptr<EVP_PKEY> pKey(EVP_PKEY_new(), EVP_PKEY_free);
     EVP_PKEY_set1_EC_KEY(pKey.get(), eckey.get());
-
-    /*验签*/
-    std::shared_ptr<EVP_PKEY_CTX> pctx(EVP_PKEY_CTX_new(pKey.get(), NULL), EVP_PKEY_CTX_free);
-    if (pctx == NULL) {
-        /* 错误处理 */
+    /* 验签上下文及初始化 */
+    std::shared_ptr<EVP_MD_CTX> mctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
+    if (!EVP_DigestVerifyInit(mctx.get(), NULL, EVP_sm3(), NULL, pKey.get())) {
         getError();
         return;
     }
-    if (EVP_PKEY_verify_init(pctx.get()) <= 0) {
-        /* 错误处理 */
-        getError();
-        return;
-    }
-    long siglen = signQstr.size();
-    std::shared_ptr<unsigned char> sig(OPENSSL_hexstr2buf(signQstr.toStdString().c_str(), &siglen),
-                                       [](unsigned char *buf) { OPENSSL_free(buf); });
-    int ret = EVP_PKEY_verify(pctx.get(), sig.get(), siglen, md, mdlen);
+    /* 验签 */
+    int ret = EVP_DigestVerify(mctx.get(),
+                               sig,
+                               siglen,
+                               (unsigned char *) inputQstr.toStdString().c_str(),
+                               inputQstr.size());
     if (ret == 1) {
         /* 验签成功 */
         QMessageBox::warning(NULL,
@@ -192,7 +164,6 @@ void Sm2SignVerify::on_pushButtonVerify_clicked()
                              QMessageBox::Close,
                              QMessageBox::Close);
     } else {
-        /* 发生错误 */
         getError();
         return;
     }
