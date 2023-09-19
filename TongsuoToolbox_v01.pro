@@ -15,6 +15,7 @@ SOURCES += \
     randnum.cpp \
     sm2encrypt.cpp \
     sm2key.cpp \
+    sm2signverify.cpp \
     sm3hash.cpp \
     tserror.cpp
 
@@ -24,6 +25,7 @@ HEADERS += \
     randnum.h \
     sm2encrypt.h \
     sm2key.h \
+    sm2signverify.h \
     sm3hash.h \
     tserror.h
 
@@ -46,6 +48,7 @@ FORMS += \
     randnum.ui \
     sm2encrypt.ui \
     sm2key.ui \
+    sm2signverify.ui \
     sm3hash.ui
 
 RESOURCES += \

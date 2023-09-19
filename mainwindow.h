@@ -5,6 +5,7 @@
 #include "randnum.h"
 #include "sm2encrypt.h"
 #include "sm2key.h"
+#include "sm2signverify.h"
 #include "sm3hash.h"
 #include <QHBoxLayout>
 #include <QListWidget>
@@ -38,5 +39,7 @@ private:
     Sm2Encrypt *sm2Encry;
     /* sm3哈希界面 */
     Sm3Hash *sm3Hash;
+    /* sm2签名验签界面 */
+    Sm2SignVerify *sm2SignVerify;
 };
 #endif // MAINWINDOW_H
