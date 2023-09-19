@@ -7,6 +7,7 @@
 #include "sm2key.h"
 #include "sm2signverify.h"
 #include "sm3hash.h"
+#include "sm4encrypt.h"
 #include <QHBoxLayout>
 #include <QListWidget>
 #include <QMainWindow>
@@ -41,5 +42,7 @@ private:
     Sm3Hash *sm3Hash;
     /* sm2签名验签界面 */
     Sm2SignVerify *sm2SignVerify;
+    /* sm4加解密界面 */
+    Sm4encrypt *sm4Encry;
 };
 #endif // MAINWINDOW_H

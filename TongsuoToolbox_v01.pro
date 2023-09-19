@@ -17,6 +17,7 @@ SOURCES += \
     sm2key.cpp \
     sm2signverify.cpp \
     sm3hash.cpp \
+    sm4encrypt.cpp \
     tserror.cpp
 
 HEADERS += \
@@ -27,6 +28,7 @@ HEADERS += \
     sm2key.h \
     sm2signverify.h \
     sm3hash.h \
+    sm4encrypt.h \
     tserror.h
 
 # Default rules for deployment.
@@ -49,7 +51,8 @@ FORMS += \
     sm2encrypt.ui \
     sm2key.ui \
     sm2signverify.ui \
-    sm3hash.ui
+    sm3hash.ui \
+    sm4encrypt.ui
 
 RESOURCES += \
     images.qrc
