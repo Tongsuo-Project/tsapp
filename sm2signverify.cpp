@@ -103,11 +103,15 @@ void Sm2SignVerify::on_pushButtonSign_clicked()
     /* 签名 */
     std::shared_ptr<unsigned char> sig((unsigned char *) OPENSSL_malloc(siglen),
                                        [](unsigned char *buf) { OPENSSL_free(buf); });
-    EVP_DigestSign(mctx.get(),
-                   sig.get(),
-                   &siglen,
-                   (unsigned char *) inputQstr.toStdString().c_str(),
-                   inputQstr.size());
+    int ret = EVP_DigestSign(mctx.get(),
+                             sig.get(),
+                             &siglen,
+                             (unsigned char *) inputQstr.toStdString().c_str(),
+                             inputQstr.size());
+    if (ret != 1) {
+        getError();
+        return;
+    }
     /* 显示十六进制字符串到输出框 */
     std::shared_ptr<char> out(OPENSSL_buf2hexstr(sig.get(), siglen),
                               [](char *buf) { OPENSSL_free(buf); });
