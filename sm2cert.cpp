@@ -186,6 +186,7 @@ void Sm2Cert::on_pushButtonGen_clicked()
                              QString("请输入通用名称！"),
                              QMessageBox::Close,
                              QMessageBox::Close);
+        return;
     }
     /* 获取用户输入的有效期 */
     QString days = this->ui->lineEditDays->text();
@@ -195,6 +196,7 @@ void Sm2Cert::on_pushButtonGen_clicked()
                              QString("请输入有效期！"),
                              QMessageBox::Close,
                              QMessageBox::Close);
+        return;
     }
     /* 生成根CA证书 */
     std::shared_ptr<X509> rootCer = this->genRootCA();
