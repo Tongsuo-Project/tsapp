@@ -31,6 +31,8 @@ MainWindow::MainWindow(QWidget *parent)
     sm2SignVerify = new Sm2SignVerify();
     /* SM4加解密实例化 */
     sm4Encry = new Sm4encrypt();
+    /* SM2签发证书实例化 */
+    sm2Cer = new Sm2Cert();
     /* 左侧功能导航 */
     QList<QString> strListWidgetList;
     strListWidgetList << "首页"
@@ -39,8 +41,9 @@ MainWindow::MainWindow(QWidget *parent)
                       << "SM2加解密"
                       << "SM3哈希"
                       << "SM2签名验签"
-                      << "SM4加解密";
-    for (int i = 0; i < 7; i++) {
+                      << "SM4加解密"
+                      << "SM2签发证书";
+    for (int i = 0; i < 8; i++) {
         /* listWidget 插入项 */
         listWidget->insertItem(i, strListWidgetList[i]);
     }
@@ -52,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
     stackedWidget->addWidget(sm3Hash);
     stackedWidget->addWidget(sm2SignVerify);
     stackedWidget->addWidget(sm4Encry);
+    stackedWidget->addWidget(sm2Cer);
     /* 设置列表的最大宽度 */
     listWidget->setMaximumWidth(200);
     /* 添加到水平布局 */
