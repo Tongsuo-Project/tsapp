@@ -118,7 +118,9 @@ std::shared_ptr<X509> Sm2Cert::genMidCA(std::shared_ptr<X509> rootCA)
     return midCer;
 }
 
-std::shared_ptr<X509> Sm2Cert::genCA(std::shared_ptr<X509> midCA, QString CNname, QString days)
+std::shared_ptr<X509> Sm2Cert::genEncryptCert(std::shared_ptr<X509> midCA,
+                                              QString CNname,
+                                              QString days)
 {
     /* 生成用户密钥 */
     std::shared_ptr<EVP_PKEY> userKey(EVP_PKEY_Q_keygen(NULL, NULL, "SM2"), EVP_PKEY_free);
@@ -127,7 +129,13 @@ std::shared_ptr<X509> Sm2Cert::genCA(std::shared_ptr<X509> midCA, QString CNname
         getError();
         exit(0);
     }
-
+    /* 输出用户私钥 */
+    std::shared_ptr<BIO> out(BIO_new(BIO_s_mem()), BIO_free);
+    PEM_write_bio_PrivateKey(out.get(), userKey.get(), NULL, 0, NULL, NULL, NULL);
+    int len = BIO_pending(out.get());
+    char buf[1024] = {};
+    BIO_read(out.get(), buf, len);
+    this->ui->textBrowserEncryKey->setText(QString(buf));
     /* 生成CSR */
     std::shared_ptr<X509_REQ> userReq(X509_REQ_new(), X509_REQ_free);
     /* CSR相关设置 */
@@ -150,6 +158,80 @@ std::shared_ptr<X509> Sm2Cert::genCA(std::shared_ptr<X509> midCA, QString CNname
     /* 签发证书 */
     std::shared_ptr<X509> userCer(X509_new(), X509_free);
     /* 证书相关设置 */
+    std::string str = "Key Encipherment, Data Encipherment";
+    std::shared_ptr<X509_EXTENSION>
+        cert_ex(X509V3_EXT_conf_nid(NULL, NULL, NID_key_usage, str.c_str()), X509_EXTENSION_free);
+    X509_add_ext(userCer.get(), cert_ex.get(), -1);
+
+    X509_set_version(userCer.get(), X509_VERSION_3);
+    X509_set_pubkey(userCer.get(), userKey.get());
+
+    std::shared_ptr<ASN1_INTEGER> aserial(ASN1_INTEGER_new(), ASN1_INTEGER_free);
+    ASN1_INTEGER_set(aserial.get(), 0);
+    X509_set_serialNumber(userCer.get(), aserial.get());
+
+    X509_set_subject_name(userCer.get(), userCAname.get());
+
+    const X509_NAME *rootCAname = X509_get_subject_name(midCA.get());
+    X509_set_issuer_name(userCer.get(), rootCAname);
+
+    time_t curTime = time(NULL);
+    std::shared_ptr<ASN1_TIME> rootBeforeTime(ASN1_TIME_new(), ASN1_TIME_free);
+    ASN1_TIME_set(rootBeforeTime.get(), curTime);
+    X509_set_notBefore(userCer.get(), rootBeforeTime.get());
+    std::shared_ptr<ASN1_TIME>
+        rootAfterTime(ASN1_TIME_adj(NULL, curTime, 0, days.toInt() * 60 * 60 * 24), ASN1_TIME_free);
+    X509_set_notAfter(userCer.get(), rootAfterTime.get());
+    /* 使用中间CA签发 */
+    std::shared_ptr<EVP_PKEY> rootKey(X509_get_pubkey(midCA.get()), EVP_PKEY_free);
+    X509_sign(userCer.get(), rootKey.get(), EVP_sm3());
+
+    return userCer;
+}
+
+std::shared_ptr<X509> Sm2Cert::genSignCert(std::shared_ptr<X509> midCA, QString CNname, QString days)
+{
+    /* 生成用户密钥 */
+    std::shared_ptr<EVP_PKEY> userKey(EVP_PKEY_Q_keygen(NULL, NULL, "SM2"), EVP_PKEY_free);
+    if (userKey.get() == NULL) {
+        /* 错误处理 */
+        getError();
+        exit(0);
+    }
+    /* 输出用户私钥 */
+    std::shared_ptr<BIO> out(BIO_new(BIO_s_mem()), BIO_free);
+    PEM_write_bio_PrivateKey(out.get(), userKey.get(), NULL, 0, NULL, NULL, NULL);
+    int len = BIO_pending(out.get());
+    char buf[1024] = {};
+    BIO_read(out.get(), buf, len);
+    this->ui->textBrowserSignKey->setText(QString(buf));
+    /* 生成CSR */
+    std::shared_ptr<X509_REQ> userReq(X509_REQ_new(), X509_REQ_free);
+    /* CSR相关设置 */
+    X509_REQ_set_pubkey(userReq.get(), userKey.get());
+
+    std::shared_ptr<X509_NAME> userCAname(X509_NAME_new(), X509_NAME_free);
+    X509_NAME_add_entry_by_txt(userCAname.get(),
+                               "CN",
+                               MBSTRING_ASC,
+                               (unsigned char *) CNname.toStdString().c_str(),
+                               -1,
+                               -1,
+                               0);
+    X509_REQ_set_subject_name(userReq.get(), userCAname.get());
+
+    X509_REQ_set_version(userReq.get(), X509_VERSION_3);
+    X509_REQ_sign(userReq.get(), userKey.get(), EVP_sm3());
+    X509_REQ_verify(userReq.get(), userKey.get());
+
+    /* 签发证书 */
+    std::shared_ptr<X509> userCer(X509_new(), X509_free);
+    /* 证书相关设置 */
+    std::string str = "Digital Signature";
+    std::shared_ptr<X509_EXTENSION>
+        cert_ex(X509V3_EXT_conf_nid(NULL, NULL, NID_key_usage, str.c_str()), X509_EXTENSION_free);
+    X509_add_ext(userCer.get(), cert_ex.get(), -1);
+    //Key Encipherment, Data Encipherment
     X509_set_version(userCer.get(), X509_VERSION_3);
     X509_set_pubkey(userCer.get(), userKey.get());
 
@@ -198,17 +280,25 @@ void Sm2Cert::on_pushButtonGen_clicked()
                              QMessageBox::Close);
         return;
     }
+
     /* 生成根CA证书 */
     std::shared_ptr<X509> rootCer = this->genRootCA();
     /* 生成中间CA证书 */
     std::shared_ptr<X509> midCer = this->genMidCA(rootCer);
-    /* 生成用户证书 */
-    std::shared_ptr<X509> userCer = this->genCA(midCer, CN, days);
+    /* 生成用户签名证书 */
+    std::shared_ptr<X509> userSignCer = this->genSignCert(midCer, CN, days);
+    /* 生成用户加密证书 */
+    std::shared_ptr<X509> userEncryptCer = this->genEncryptCert(midCer, CN, days);
     /* 将用户证书以PEM格式输出到输出栏 */
-    std::shared_ptr<BIO> out(BIO_new(BIO_s_mem()), BIO_free);
-    PEM_write_bio_X509(out.get(), userCer.get());
-    int len = BIO_pending(out.get());
+    std::shared_ptr<BIO> outSign(BIO_new(BIO_s_mem()), BIO_free);
+    PEM_write_bio_X509(outSign.get(), userSignCer.get());
+    int len = BIO_pending(outSign.get());
     char buf[2048] = {};
-    BIO_read(out.get(), buf, len);
-    this->ui->textBrowserOutput->setPlainText(QString(buf));
+    BIO_read(outSign.get(), buf, len);
+    this->ui->textBrowserSignOutput->setPlainText(QString(buf));
+    std::shared_ptr<BIO> outEncrypt(BIO_new(BIO_s_mem()), BIO_free);
+    PEM_write_bio_X509(outEncrypt.get(), userEncryptCer.get());
+    len = BIO_pending(outEncrypt.get());
+    BIO_read(outEncrypt.get(), buf, len);
+    this->ui->textBrowserEncryptOutput->setPlainText(QString(buf));
 }
