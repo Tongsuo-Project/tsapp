@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>certs/subca.pem</file>
+        <file>certs/subca_pkey.pem</file>
+    </qresource>
+</RCC>

@@ -9,9 +9,9 @@
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
-#include <stdio.h>
 #include <string>
 #include <time.h>
+#include <QFile>
 #include <QWidget>
 
 namespace Ui {
@@ -31,11 +31,14 @@ private slots:
 
 private:
     Ui::Sm2Cert *ui;
-    int addExtension(X509 *cert, X509 *root, int nid, const char *value);
-    std::shared_ptr<X509> genRootCA();
-    std::shared_ptr<X509> genMidCA(std::shared_ptr<X509> rootCA);
-    std::shared_ptr<X509> genSignCert(std::shared_ptr<X509> midCA, QString CNname, QString days);
-    std::shared_ptr<X509> genEncryptCert(std::shared_ptr<X509> midCA, QString CNname, QString days);
+    std::shared_ptr<X509> genSignCert(std::shared_ptr<X509> midCA,
+                                      std::shared_ptr<EVP_PKEY> midcaPkey,
+                                      QString CNname,
+                                      QString days);
+    std::shared_ptr<X509> genEncryptCert(std::shared_ptr<X509> midCA,
+                                         std::shared_ptr<EVP_PKEY> midcaPkey,
+                                         QString CNname,
+                                         QString days);
 };
 
 #endif // SM2CERT_H
