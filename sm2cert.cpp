@@ -1,8 +1,6 @@
 #include "sm2cert.h"
 #include "ui_sm2cert.h"
-extern "C" {
-#include <openssl/applink.c>
-}
+
 Sm2Cert::Sm2Cert(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Sm2Cert)
