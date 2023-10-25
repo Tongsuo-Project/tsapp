@@ -3,6 +3,7 @@
 
 #include "home.h"
 #include "randnum.h"
+#include "sm2cert.h"
 #include "sm2encrypt.h"
 #include "sm2key.h"
 #include "sm2signverify.h"
@@ -44,5 +45,7 @@ private:
     Sm2SignVerify *sm2SignVerify;
     /* sm4加解密界面 */
     Sm4encrypt *sm4Encry;
+    /* sm2签发证书 */
+    Sm2Cert *sm2Cer;
 };
 #endif // MAINWINDOW_H

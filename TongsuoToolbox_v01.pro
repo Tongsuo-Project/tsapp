@@ -13,6 +13,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     randnum.cpp \
+    sm2cert.cpp \
     sm2encrypt.cpp \
     sm2key.cpp \
     sm2signverify.cpp \
@@ -24,6 +25,7 @@ HEADERS += \
     home.h \
     mainwindow.h \
     randnum.h \
+    sm2cert.h \
     sm2encrypt.h \
     sm2key.h \
     sm2signverify.h \
@@ -48,6 +50,7 @@ else:unix: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib64/libcrypto.a
 FORMS += \
     home.ui \
     randnum.ui \
+    sm2cert.ui \
     sm2encrypt.ui \
     sm2key.ui \
     sm2signverify.ui \
