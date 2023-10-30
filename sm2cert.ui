@@ -16,6 +16,11 @@
   <layout class="QGridLayout" name="gridLayout">
    <item row="4" column="0">
     <widget class="QLabel" name="label_4">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>签名证书&amp;密钥：</string>
      </property>
@@ -23,6 +28,11 @@
    </item>
    <item row="3" column="2">
     <widget class="QLineEdit" name="lineEditDays">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>365</string>
      </property>
@@ -46,6 +56,11 @@
    </item>
    <item row="2" column="2">
     <widget class="QLineEdit" name="lineEditCN">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="inputMask">
       <string/>
      </property>
@@ -58,10 +73,21 @@
     </widget>
    </item>
    <item row="4" column="2">
-    <widget class="QTextBrowser" name="textBrowserSignOutput"/>
+    <widget class="QTextBrowser" name="textBrowserSignOutput">
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+    </widget>
    </item>
    <item row="3" column="3">
     <widget class="QPushButton" name="pushButtonGen">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>生成证书</string>
      </property>
@@ -69,6 +95,11 @@
    </item>
    <item row="2" column="0">
     <widget class="QLabel" name="label_2">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>通用名称：</string>
      </property>
@@ -89,6 +120,11 @@
    </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>私钥/请求：</string>
      </property>
@@ -96,6 +132,11 @@
    </item>
    <item row="3" column="0">
     <widget class="QLabel" name="label_3">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>有效天数：</string>
      </property>
@@ -108,6 +149,11 @@
      </property>
      <item>
       <widget class="QPushButton" name="pushButton_2">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>自动生成</string>
        </property>
@@ -115,6 +161,11 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>手动生成</string>
        </property>
@@ -136,20 +187,43 @@
     </layout>
    </item>
    <item row="5" column="2">
-    <widget class="QTextBrowser" name="textBrowserEncryptOutput"/>
+    <widget class="QTextBrowser" name="textBrowserEncryptOutput">
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+    </widget>
    </item>
    <item row="5" column="0">
     <widget class="QLabel" name="label_5">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>加密证书&amp;密钥：</string>
      </property>
     </widget>
    </item>
    <item row="4" column="3">
-    <widget class="QTextBrowser" name="textBrowserSignKey"/>
+    <widget class="QTextBrowser" name="textBrowserSignKey">
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+    </widget>
    </item>
    <item row="5" column="3">
-    <widget class="QTextBrowser" name="textBrowserEncryKey"/>
+    <widget class="QTextBrowser" name="textBrowserEncryKey">
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

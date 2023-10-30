@@ -42,10 +42,21 @@
       </widget>
      </item>
      <item row="1" column="2">
-      <widget class="QTextBrowser" name="textBrowserOutput"/>
+      <widget class="QTextBrowser" name="textBrowserOutput">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+      </widget>
      </item>
      <item row="1" column="0">
       <widget class="QPlainTextEdit" name="plainTextEditInput">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
        <property name="plainText">
         <string>hello SM3</string>
        </property>

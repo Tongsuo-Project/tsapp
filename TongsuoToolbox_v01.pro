@@ -1,5 +1,7 @@
 QT       += core gui
 
+QT += network
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
@@ -19,6 +21,7 @@ SOURCES += \
     sm2signverify.cpp \
     sm3hash.cpp \
     sm4encrypt.cpp \
+    tlcpclient.cpp \
     tserror.cpp
 
 HEADERS += \
@@ -31,6 +34,7 @@ HEADERS += \
     sm2signverify.h \
     sm3hash.h \
     sm4encrypt.h \
+    tlcpclient.h \
     tserror.h
 
 # Default rules for deployment.
@@ -39,6 +43,9 @@ target.path = $$(PREFIX)
 
 win32: LIBS += -ladvapi32 -lcrypt32 -lgdi32 -luser32 -lws2_32 -L$$(TONGSUO_HOME)/lib -llibcrypto
 else:unix: LIBS += -L$$(TONGSUO_HOME)/lib64 -lcrypto
+
+win32: LIBS += -ladvapi32 -lcrypt32 -lgdi32 -luser32 -lws2_32 -L$$(TONGSUO_HOME)/lib -llibssl
+else:unix: LIBS += -L$$(TONGSUO_HOME)/lib64 -lssl
 
 INCLUDEPATH += $$(TONGSUO_HOME)/include
 DEPENDPATH +=  $$(TONGSUO_HOME)/include
@@ -55,7 +62,11 @@ FORMS += \
     sm2key.ui \
     sm2signverify.ui \
     sm3hash.ui \
-    sm4encrypt.ui
+    sm4encrypt.ui \
+    tlcpclient.ui
 
 RESOURCES += \
+    certs.qrc \
     images.qrc
+
+DISTFILES +=
