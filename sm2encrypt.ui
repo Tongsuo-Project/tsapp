@@ -42,6 +42,11 @@
      </item>
      <item row="1" column="1">
       <widget class="QLineEdit" name="lineEditPub">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>04C370A09551DCC0321F0927A44B1A4D6ED5C39C06B336AA8FDE3389AAE830CC518C54BE3D1EAAAF45E8A34F41BCEA429EAD6B3271189B967CD248FF566F9F5161</string>
        </property>
@@ -49,6 +54,11 @@
      </item>
      <item row="2" column="1">
       <widget class="QLineEdit" name="lineEditPri">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>54519B9E1FD670D429B4D8EDE7A9A0322C5A6D3C3E9446903EFA5FE2C6B49EC2</string>
        </property>
@@ -110,6 +120,11 @@
      </item>
      <item row="0" column="2" rowspan="2">
       <widget class="QPlainTextEdit" name="plainTextEditOutput">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
        <property name="lineWrapMode">
         <enum>QPlainTextEdit::WidgetWidth</enum>
        </property>
@@ -117,6 +132,11 @@
      </item>
      <item row="0" column="0" rowspan="2">
       <widget class="QPlainTextEdit" name="plainTextEditInput">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
        <property name="plainText">
         <string>hello Tongsuo</string>
        </property>

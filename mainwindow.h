@@ -9,6 +9,7 @@
 #include "sm2signverify.h"
 #include "sm3hash.h"
 #include "sm4encrypt.h"
+#include "tlcpclient.h"
 #include <QHBoxLayout>
 #include <QListWidget>
 #include <QMainWindow>
@@ -47,5 +48,7 @@ private:
     Sm4encrypt *sm4Encry;
     /* sm2签发证书 */
     Sm2Cert *sm2Cer;
+    /* TLCP客户端界面 */
+    TLCPclient *tlcpClient;
 };
 #endif // MAINWINDOW_H
