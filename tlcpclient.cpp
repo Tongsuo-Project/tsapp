@@ -1,4 +1,3 @@
-#ifdef _WIN32
 #include "tlcpclient.h"
 #include "ui_tlcpclient.h"
 static SSL *ssl;
@@ -9,7 +8,7 @@ TLCPclient::TLCPclient(QWidget *parent)
     ui->setupUi(this);
     ui->pushButtonSend->setEnabled(false);
 }
-
+#ifdef _WIN32
 TLCPclient::~TLCPclient()
 {
     delete ui;

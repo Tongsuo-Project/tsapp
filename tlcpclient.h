@@ -1,11 +1,12 @@
 #ifndef TLCPCLIENT_H
 #define TLCPCLIENT_H
-#ifdef _WIN32
 
 #include <memory>
 #include <openssl/ssl.h>
 #include <tserror.h>
+#ifdef _WIN32
 #include <winsock.h>
+#endif // _WIN32
 #include <QWidget>
 #pragma comment(lib, "ws2_32.lib")
 
@@ -37,5 +38,4 @@ private:
                          void *arg);
 };
 
-#endif // _WIN32
 #endif // TLCPCLIENT_H
