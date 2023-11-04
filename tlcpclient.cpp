@@ -1,7 +1,6 @@
 #ifdef _WIN32
 #include "tlcpclient.h"
 #include "ui_tlcpclient.h"
-
 static SSL *ssl;
 TLCPclient::TLCPclient(QWidget *parent)
     : QWidget(parent)
@@ -52,9 +51,7 @@ void TLCPclient::on_pushButtonConnect_clicked()
         SSL_CTX *ssl_ctx = SSL_CTX_new(method);
         SSL_CTX_enable_ntls(ssl_ctx);
         SSL_CTX_set_verify(ssl_ctx, SSL_VERIFY_NONE, NULL);
-
         ssl = SSL_new(ssl_ctx);
-        SSL_set_connect_state(ssl);
         SSL_set_fd(ssl, client);
         if (SSL_connect(ssl) == 1) {
             //SSL连接成功

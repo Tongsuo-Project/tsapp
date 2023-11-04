@@ -1,6 +1,7 @@
 #ifndef TLCPCLIENT_H
 #define TLCPCLIENT_H
 #ifdef _WIN32
+
 #include <memory>
 #include <openssl/ssl.h>
 #include <tserror.h>
@@ -35,5 +36,6 @@ private:
                          SSL *ssl,
                          void *arg);
 };
+
 #endif // _WIN32
 #endif // TLCPCLIENT_H
