@@ -8,7 +8,7 @@ TLCPclient::TLCPclient(QWidget *parent)
     ui->setupUi(this);
     ui->pushButtonSend->setEnabled(false);
 }
-#ifdef _WIN32
+
 TLCPclient::~TLCPclient()
 {
     delete ui;
@@ -21,37 +21,27 @@ void TLCPclient::on_pushButtonConnect_clicked()
         SSL_library_init();
         SSL_load_error_strings();
         OpenSSL_add_all_algorithms();
-
-        WORD w_req = MAKEWORD(2, 2); //版本号
-        WSADATA wsadata;
-        WSAStartup(w_req, &wsadata);
-
-        SOCKET client = socket(AF_INET, SOCK_STREAM, 0);
-        SOCKADDR_IN client_addr;
-        memset(&client_addr, 0, sizeof(client_addr)); //清零
         //获取域名端口
         QString addrQstr = this->ui->lineEditAddr->text();
         QString portQstr = this->ui->lineEditPort->text();
-        //设置地址并连接
-        client_addr.sin_family = AF_INET;
-        client_addr.sin_addr.s_addr = inet_addr(
-            addrQstr.toStdString().c_str()); //server端ip地址112.64.122.183 111.205.162.151
-        client_addr.sin_port = htons(portQstr.toInt()); //监听端口
-        if (::connect(client, (SOCKADDR *) &client_addr, sizeof(SOCKADDR)) == SOCKET_ERROR) {
+        // 创建一个 QSslSocket对象设置地址并连接
+        QTcpSocket socket;
+        socket.connectToHost(addrQstr, portQstr.toInt());
+        if (!socket.waitForConnected()) {
             QMessageBox::warning(NULL,
                                  "connect failed",
                                  QString("TCP connection to server failed"),
                                  QMessageBox::Ok,
                                  QMessageBox::Ok);
-            return;
         }
+
         //TCP已连接,准备SSL连接
         const SSL_METHOD *method = NTLS_client_method();
-        SSL_CTX *ssl_ctx = SSL_CTX_new(method);
-        SSL_CTX_enable_ntls(ssl_ctx);
-        SSL_CTX_set_verify(ssl_ctx, SSL_VERIFY_NONE, NULL);
-        ssl = SSL_new(ssl_ctx);
-        SSL_set_fd(ssl, client);
+        std::shared_ptr<SSL_CTX> ssl_ctx(SSL_CTX_new(method), SSL_CTX_free);
+        SSL_CTX_enable_ntls(ssl_ctx.get());
+        SSL_CTX_set_verify(ssl_ctx.get(), SSL_VERIFY_NONE, NULL);
+        ssl = SSL_new(ssl_ctx.get());
+        SSL_set_fd(ssl, socket.socketDescriptor());
         if (SSL_connect(ssl) == 1) {
             //SSL连接成功
             ui->pushButtonConnect->setText("断开服务器");
@@ -62,14 +52,10 @@ void TLCPclient::on_pushButtonConnect_clicked()
                                      QMessageBox::Ok);
 
             ui->pushButtonSend->setEnabled(true);
-            struct timeval tv;
-            tv.tv_sec = 10;
-            tv.tv_usec = 0;
-            setsockopt(client, SOL_SOCKET, SO_SNDTIMEO, (char *) &tv, sizeof(struct timeval));
-            setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, (char *) &tv, sizeof(struct timeval));
-            SSL_CTX_set_mode(ssl_ctx, SSL_MODE_AUTO_RETRY);
         } else {
             //SSL连接失败
+            SSL_shutdown(ssl);
+            SSL_free(ssl);
             QMessageBox::warning(NULL,
                                  "connect failed",
                                  QString("SSL connection to server failed"),
@@ -122,15 +108,10 @@ void TLCPclient::on_pushButtonSend_clicked()
 void TLCPclient::trace_cb(
     int write_p, int version, int content_type, const void *buf, size_t msglen, SSL *ssl, void *arg)
 {
-    BIO *bio = NULL;
-    if (arg == NULL) {
-        bio = BIO_new(BIO_s_mem());
-        arg = bio;
-    }
+    std::shared_ptr<BIO> bio(BIO_new(BIO_s_mem()), BIO_free);
+    arg = bio.get();
     SSL_trace(write_p, version, content_type, buf, msglen, ssl, arg);
     int len = BIO_pending((BIO *) arg);
     char argbuf[1024] = {};
     BIO_read((BIO *) arg, argbuf, len);
-    BIO_free(bio);
 }
-#endif

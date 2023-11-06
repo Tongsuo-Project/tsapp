@@ -4,9 +4,7 @@
 #include <memory>
 #include <openssl/ssl.h>
 #include <tserror.h>
-#ifdef _WIN32
-#include <winsock.h>
-#endif // _WIN32
+#include <QTcpSocket>
 #include <QWidget>
 #pragma comment(lib, "ws2_32.lib")
 
@@ -21,14 +19,6 @@ class TLCPclient : public QWidget
 public:
     explicit TLCPclient(QWidget *parent = nullptr);
     ~TLCPclient();
-
-private slots:
-    void on_pushButtonConnect_clicked();
-
-    void on_pushButtonSend_clicked();
-
-private:
-    Ui::TLCPclient *ui;
     static void trace_cb(int write_p,
                          int version,
                          int content_type,
@@ -36,6 +26,13 @@ private:
                          size_t msglen,
                          SSL *ssl,
                          void *arg);
+private slots:
+    void on_pushButtonConnect_clicked();
+
+    void on_pushButtonSend_clicked();
+
+private:
+    Ui::TLCPclient *ui;
 };
 
 #endif // TLCPCLIENT_H
