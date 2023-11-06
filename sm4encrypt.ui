@@ -18,6 +18,11 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QComboBox" name="comboBoxMode">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
        <item>
         <property name="text">
          <string>CBC</string>
@@ -39,6 +44,11 @@
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <widget class="QLabel" name="label_4">
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>初始IV：</string>
            </property>
@@ -46,6 +56,11 @@
          </item>
          <item>
           <widget class="QLineEdit" name="lineEditCBCIV">
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>1F:B2:D4:2F:B3:6E:2E:88:A2:20:B0:4F:2E:49:AA:13</string>
            </property>
@@ -60,6 +75,11 @@
    </item>
    <item row="4" column="0">
     <widget class="QLabel" name="label_5">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>加密/解密结果：</string>
      </property>
@@ -80,6 +100,11 @@
    </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>加密/解密内容：</string>
      </property>
@@ -87,6 +112,11 @@
    </item>
    <item row="1" column="1">
     <widget class="QPlainTextEdit" name="plainTextEditInput">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="plainText">
       <string>hello tongsuo</string>
      </property>
@@ -107,16 +137,32 @@
    </item>
    <item row="2" column="1">
     <widget class="QLineEdit" name="lineEditKey">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>3F:34:2E:9D:67:D6:CE:7B:E7:01:75:6A:F7:BA:C8:F2</string>
      </property>
     </widget>
    </item>
    <item row="4" column="1">
-    <widget class="QTextBrowser" name="textBrowserOutput"/>
+    <widget class="QTextBrowser" name="textBrowserOutput">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+    </widget>
    </item>
    <item row="2" column="0">
     <widget class="QLabel" name="label_2">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>密钥：</string>
      </property>
@@ -126,6 +172,11 @@
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QPushButton" name="pushButtonGen">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>加密</string>
        </property>
@@ -133,6 +184,11 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButtonDecrypt">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
        <property name="text">
         <string>解密</string>
        </property>
@@ -142,6 +198,11 @@
    </item>
    <item row="3" column="0">
     <widget class="QLabel" name="label_3">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
      <property name="text">
       <string>加密模式：</string>
      </property>

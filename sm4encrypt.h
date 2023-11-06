@@ -1,11 +1,10 @@
 #ifndef SM4ENCRYPT_H
 #define SM4ENCRYPT_H
 
+#include "tserror.h"
 #include <memory>
 #include <openssl/evp.h>
-#include <tserror.h>
 #include <QWidget>
-
 namespace Ui {
 class Sm4encrypt;
 }
