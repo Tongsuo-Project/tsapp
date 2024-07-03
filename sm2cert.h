@@ -31,12 +31,6 @@ private slots:
 
 private:
     Ui::Sm2Cert *ui;
-    /* type等于1生成签名证书，等于0生成加密证书 */
-    std::shared_ptr<X509> genCert(int type,
-                                  std::shared_ptr<X509> midCA,
-                                  std::shared_ptr<EVP_PKEY> midcaPkey,
-                                  QString CNname,
-                                  QString days);
 };
 
 #endif // SM2CERT_H

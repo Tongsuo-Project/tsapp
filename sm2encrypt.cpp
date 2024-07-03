@@ -1,4 +1,5 @@
 #include "sm2encrypt.h"
+#include "sm2.h"
 #include "ui_sm2encrypt.h"
 
 Sm2Encrypt::Sm2Encrypt(QWidget *parent)
@@ -15,94 +16,166 @@ Sm2Encrypt::~Sm2Encrypt()
 
 void Sm2Encrypt::on_pushButtonEncrypt_clicked()
 {
-    /* 选定椭圆曲线组 */
-    std::shared_ptr<EC_GROUP> group(EC_GROUP_new_by_curve_name(NID_sm2), EC_GROUP_free);
-    /* 密钥上下文生成 */
-    std::shared_ptr<EC_KEY> eckey(EC_KEY_new(), EC_KEY_free);
-    /* 设定密钥的曲线组 */
-    EC_KEY_set_group(eckey.get(), group.get());
-    /* 获取用户输入的公钥 */
-    QString pubQstrInput = this->ui->lineEditPub->text();
-    /* 将16进制字符串公钥转为EC_POINT，并设置到EC_KEY */
-    const EC_POINT *pubPoint
-        = EC_POINT_hex2point(group.get(), pubQstrInput.toStdString().c_str(), NULL, NULL);
-    EC_KEY_set_public_key(eckey.get(), pubPoint);
-    /* 将EC_KEY设置到EVP_PKEY */
-    std::shared_ptr<EVP_PKEY> pKey(EVP_PKEY_new(), EVP_PKEY_free);
-    EVP_PKEY_set1_EC_KEY(pKey.get(), eckey.get());
-    /* 生成加密上下文 */
-    std::shared_ptr<EVP_PKEY_CTX> pkCtx(EVP_PKEY_CTX_new(pKey.get(), NULL), EVP_PKEY_CTX_free);
-    /* 加密初始化 */
-    if (EVP_PKEY_encrypt_init(pkCtx.get()) <= 0) {
-        getError();
+    QString input = this->ui->textEditPlain->toPlainText();
+    QString pubQstrInput = this->ui->plainTextEditPub->toPlainText();
+    EVP_PKEY_CTX *encctx = NULL;
+    EVP_PKEY *pkey = NULL;
+    size_t outlen;
+    std::vector<unsigned char> buf;
+    std::vector<char> str;
+
+    if (pubQstrInput.isEmpty()) {
+        QMessageBox::warning(NULL,
+                             "warning",
+                             QString("请输入公钥！"),
+                             QMessageBox::Close,
+                             QMessageBox::Close);
         return;
     }
-    /* 获取输入明文 */
-    QString plainTextQstr = this->ui->plainTextEditInput->toPlainText();
-    /* 获取加密密文长度 */
-    size_t cipherTextLen = 0;
-    int res = EVP_PKEY_encrypt(pkCtx.get(),
-                               NULL,
-                               &cipherTextLen,
-                               (const unsigned char *) plainTextQstr.toStdString().c_str(),
-                               plainTextQstr.size());
-    if (res != 1) {
-        getError();
+
+    if (input.isEmpty()) {
+        QMessageBox::warning(NULL,
+                             "warning",
+                             QString("请输入明文！"),
+                             QMessageBox::Close,
+                             QMessageBox::Close);
         return;
     }
-    /* 加密生成密文 */
-    std::shared_ptr<unsigned char> cipherText(new unsigned char[cipherTextLen]);
-    res = EVP_PKEY_encrypt(pkCtx.get(),
-                           cipherText.get(),
-                           &cipherTextLen,
-                           (const unsigned char *) plainTextQstr.toStdString().c_str(),
-                           plainTextQstr.size());
-    if (res != 1) {
-        getError();
-        return;
+
+    pkey = sm2_key_new_from_raw_pub(pubQstrInput.toStdString());
+    if (pkey == NULL) {
+        printTSError();
+        goto end;
     }
-    /* 以16进制字符串的形式显示在输出框 */
-    std::shared_ptr<char> outBuf(OPENSSL_buf2hexstr(cipherText.get(), cipherTextLen),
-                                 [](char *outbuf) { OPENSSL_free(outbuf); });
-    this->ui->plainTextEditOutput->setPlainText(QString(outBuf.get()));
+
+    encctx = EVP_PKEY_CTX_new_from_pkey(NULL, pkey, NULL);
+    if (encctx == NULL)
+        goto end;
+
+    if (EVP_PKEY_encrypt_init(encctx) <= 0
+        || EVP_PKEY_encrypt(encctx,
+                            NULL,
+                            &outlen,
+                            (const unsigned char *) input.toStdString().c_str(),
+                            input.toStdString().length())
+               <= 0)
+        goto end;
+
+    buf.clear();
+    buf.reserve(outlen);
+
+    if (EVP_PKEY_encrypt(encctx,
+                         buf.data(),
+                         &outlen,
+                         (const unsigned char *) input.toStdString().c_str(),
+                         input.toStdString().length())
+        <= 0)
+        goto end;
+
+    str.reserve(outlen * 2 + 1);
+    if (OPENSSL_buf2hexstr_ex(str.data(), str.capacity(), NULL, buf.data(), outlen, '\0') != 1) {
+        printTSError();
+        goto end;
+    }
+
+    this->ui->textEditCipher->setText(QString::fromStdString(std::string(str.data(), outlen * 2)));
+
+end:
+    EVP_PKEY_free(pkey);
 }
 
 void Sm2Encrypt::on_pushButtonDecrypt_clicked()
 {
-    /* 选定椭圆曲线组 */
-    std::shared_ptr<EC_GROUP> group(EC_GROUP_new_by_curve_name(NID_sm2), EC_GROUP_free);
-    /* 密钥上下文生成 */
-    std::shared_ptr<EC_KEY> ecKey(EC_KEY_new(), EC_KEY_free);
-    /* 设定密钥的曲线组 */
-    EC_KEY_set_group(ecKey.get(), group.get());
-    /* 获取用户输入的私钥 */
-    QString priQstrInput = this->ui->lineEditPri->text();
-    /* 将16进制字符串私钥转为BIGNUM，并设置到EC_KEY */
-    BIGNUM *priBn = BN_new();
-    BN_hex2bn(&priBn, priQstrInput.toStdString().c_str());
-    EC_KEY_set_private_key(ecKey.get(), priBn);
-    BN_free(priBn);
-    /* 将EC_KEY设置到EVP_PKEY */
-    std::shared_ptr<EVP_PKEY> pKey(EVP_PKEY_new(), EVP_PKEY_free);
-    EVP_PKEY_set1_EC_KEY(pKey.get(), ecKey.get());
-    /* 生成解密上下文 */
-    std::shared_ptr<EVP_PKEY_CTX> pkCtx(EVP_PKEY_CTX_new(pKey.get(), NULL), EVP_PKEY_CTX_free);
-    /* 解密初始化 */
-    if (EVP_PKEY_decrypt_init(pkCtx.get()) <= 0) {
-        getError();
+    QString input = this->ui->textEditCipher->toPlainText();
+    QString pubQstrInput = this->ui->plainTextEditPub->toPlainText();
+    QString privQstrInput = this->ui->plainTextEditPriv->toPlainText();
+    EVP_PKEY_CTX *encctx = NULL;
+    EVP_PKEY *pkey = NULL;
+    size_t outlen;
+    std::vector<unsigned char> buf;
+    std::vector<char> str;
+
+    if (pubQstrInput.isEmpty() || privQstrInput.isEmpty()) {
+        QMessageBox::warning(NULL,
+                             "warning",
+                             QString("请输入公钥和私钥！"),
+                             QMessageBox::Close,
+                             QMessageBox::Close);
         return;
     }
-    /* 获取输入密文 */
-    QString cipherTextQstr = this->ui->plainTextEditInput->toPlainText();
-    long inBufLen = 0;
-    const unsigned char *inBuf = OPENSSL_hexstr2buf(cipherTextQstr.toStdString().c_str(), &inBufLen);
-    /* 获取解密明文长度 */
-    size_t plainTextLen = 0;
-    EVP_PKEY_decrypt(pkCtx.get(), NULL, &plainTextLen, inBuf, inBufLen);
-    /* 解密 生成明文 */
-    std::shared_ptr<unsigned char> plainText(new unsigned char[plainTextLen]);
-    EVP_PKEY_decrypt(pkCtx.get(), plainText.get(), &plainTextLen, inBuf, inBufLen);
-    /* 将明文内容显示到输出框 */
-    std::string outStr((const char *) plainText.get(), plainTextLen);
-    this->ui->plainTextEditOutput->setPlainText(QString::fromStdString(outStr));
+
+    if (input.isEmpty()) {
+        QMessageBox::warning(NULL,
+                             "warning",
+                             QString("请输入密文！"),
+                             QMessageBox::Close,
+                             QMessageBox::Close);
+        return;
+    }
+
+    pkey = sm2_key_new_from_raw_pub_and_priv(pubQstrInput.toStdString(),
+                                             privQstrInput.toStdString());
+    if (pkey == NULL) {
+        printTSError();
+        goto end;
+    }
+
+    encctx = EVP_PKEY_CTX_new_from_pkey(NULL, pkey, NULL);
+    if (encctx == NULL)
+        goto end;
+
+    buf.clear();
+    buf.reserve(input.length() / 2);
+
+    if (OPENSSL_hexstr2buf_ex(buf.data(), buf.capacity(), NULL, input.toStdString().c_str(), '\0')
+        != 1) {
+        printTSError();
+        goto end;
+    }
+
+    if (EVP_PKEY_decrypt_init(encctx) <= 0
+        || EVP_PKEY_decrypt(encctx, NULL, &outlen, buf.data(), buf.capacity()) <= 0)
+        goto end;
+
+    str.clear();
+    str.reserve(outlen);
+
+    if (EVP_PKEY_decrypt(encctx, (unsigned char *) str.data(), &outlen, buf.data(), buf.capacity())
+        <= 0)
+        goto end;
+
+    this->ui->textEditPlain->setText(QString::fromStdString(std::string(str.data(), outlen)));
+
+end:
+    EVP_PKEY_free(pkey);
+}
+
+void Sm2Encrypt::on_pushButtonGen_clicked()
+{
+    EVP_PKEY *pkey = NULL;
+    std::string hex;
+
+    pkey = EVP_PKEY_Q_keygen(NULL, NULL, "SM2");
+    if (pkey == NULL) {
+        printTSError();
+        goto end;
+    }
+
+    if (!sm2_key_get_pub_hex(pkey, hex)) {
+        printTSError();
+        goto end;
+    }
+
+    this->ui->plainTextEditPub->setPlainText(QString::fromStdString(hex));
+
+    if (!sm2_key_get_priv_hex(pkey, hex)) {
+        printTSError();
+        goto end;
+    }
+
+    this->ui->plainTextEditPriv->setPlainText(QString::fromStdString(hex));
+
+end:
+    EVP_PKEY_free(pkey);
+    return;
 }

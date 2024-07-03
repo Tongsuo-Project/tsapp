@@ -5,5 +5,8 @@
 
 /* 错误处理函数 */
 void getError();
+void printTSError();
+
+extern BIO *bio_err;
 
 #endif // TSERROR_H

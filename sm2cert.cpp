@@ -1,5 +1,6 @@
 #include "sm2cert.h"
 #include "ui_sm2cert.h"
+#include <openssl/asn1.h>
 
 Sm2Cert::Sm2Cert(QWidget *parent)
     : QWidget(parent)
@@ -12,101 +13,280 @@ Sm2Cert::~Sm2Cert()
 {
     delete ui;
 }
-std::shared_ptr<X509> Sm2Cert::genCert(int type,
-                                       std::shared_ptr<X509> midCA,
-                                       std::shared_ptr<EVP_PKEY> midcaPkey,
-                                       QString CNname,
-                                       QString days)
+
+static char *opt_getprog(void)
 {
-    /* 生成用户密钥 */
-    std::shared_ptr<EVP_PKEY> userKey(EVP_PKEY_Q_keygen(NULL, NULL, "SM2"), EVP_PKEY_free);
-    if (userKey.get() == NULL) {
-        /* 错误处理 */
-        getError();
-        exit(0);
+    return (char *) "";
+}
+
+/*
+ * name is expected to be in the format /type0=value0/type1=value1/type2=...
+ * where + can be used instead of / to form multi-valued RDNs if canmulti
+ * and characters may be escaped by \
+ */
+static X509_NAME *parse_name(const char *cp, int chtype, int canmulti, const char *desc)
+{
+    int nextismulti = 0;
+    char *work;
+    X509_NAME *n;
+
+    if (*cp++ != '/') {
+        BIO_printf(bio_err,
+                   "%s: %s name is expected to be in the format "
+                   "/type0=value0/type1=value1/type2=... where characters may "
+                   "be escaped by \\. This name is not in that format: '%s'\n",
+                   opt_getprog(),
+                   desc,
+                   --cp);
+        return NULL;
     }
-    /* 输出用户私钥 */
-    std::shared_ptr<BIO> out(BIO_new(BIO_s_mem()), BIO_free);
-    PEM_write_bio_PrivateKey(out.get(), userKey.get(), NULL, 0, NULL, NULL, NULL);
-    int len = BIO_pending(out.get());
-    char buf[1024] = {};
-    BIO_read(out.get(), buf, len);
-    if (type == 0) {
-        this->ui->textBrowserEncryKey->setText(QString(buf));
-    } else {
-        this->ui->textBrowserSignKey->setText(QString(buf));
+
+    n = X509_NAME_new();
+    if (n == NULL) {
+        BIO_printf(bio_err, "%s: Out of memory\n", opt_getprog());
+        return NULL;
     }
-    /* 生成CSR */
-    std::shared_ptr<X509_REQ> userReq(X509_REQ_new(), X509_REQ_free);
-    /* CSR相关设置 */
-    X509_REQ_set_pubkey(userReq.get(), userKey.get());
+    work = OPENSSL_strdup(cp);
+    if (work == NULL) {
+        BIO_printf(bio_err, "%s: Error copying %s name input\n", opt_getprog(), desc);
+        goto err;
+    }
 
-    std::shared_ptr<X509_NAME> userCAname(X509_NAME_new(), X509_NAME_free);
-    X509_NAME_add_entry_by_txt(userCAname.get(),
-                               "CN",
-                               MBSTRING_ASC,
-                               (unsigned char *) CNname.toStdString().c_str(),
-                               -1,
-                               -1,
-                               0);
-    X509_REQ_set_subject_name(userReq.get(), userCAname.get());
+    while (*cp != '\0') {
+        char *bp = work;
+        char *typestr = bp;
+        unsigned char *valstr;
+        int nid;
+        int ismulti = nextismulti;
+        nextismulti = 0;
 
-    X509_REQ_set_version(userReq.get(), X509_VERSION_3);
-    X509_REQ_sign(userReq.get(), userKey.get(), EVP_sm3());
-    X509_REQ_verify(userReq.get(), userKey.get());
+        /* Collect the type */
+        while (*cp != '\0' && *cp != '=')
+            *bp++ = *cp++;
+        *bp++ = '\0';
+        if (*cp == '\0') {
+            BIO_printf(bio_err,
+                       "%s: Missing '=' after RDN type string '%s' in %s name string\n",
+                       opt_getprog(),
+                       typestr,
+                       desc);
+            goto err;
+        }
+        ++cp;
 
-    /* 签发证书 */
-    std::shared_ptr<X509> userCer(X509_new(), X509_free);
-    /* 证书相关设置 */
+        /* Collect the value. */
+        valstr = (unsigned char *) bp;
+        for (; *cp != '\0' && *cp != '/'; *bp++ = *cp++) {
+            /* unescaped '+' symbol string signals further member of multiRDN */
+            if (canmulti && *cp == '+') {
+                nextismulti = 1;
+                break;
+            }
+            if (*cp == '\\' && *++cp == '\0') {
+                BIO_printf(bio_err,
+                           "%s: Escape character at end of %s name string\n",
+                           opt_getprog(),
+                           desc);
+                goto err;
+            }
+        }
+        *bp++ = '\0';
+
+        /* If not at EOS (must be + or /), move forward. */
+        if (*cp != '\0')
+            ++cp;
+
+        /* Parse */
+        nid = OBJ_txt2nid(typestr);
+        if (nid == NID_undef) {
+            BIO_printf(bio_err,
+                       "%s: Skipping unknown %s name attribute \"%s\"\n",
+                       opt_getprog(),
+                       desc,
+                       typestr);
+            if (ismulti)
+                BIO_printf(bio_err,
+                           "Hint: a '+' in a value string needs be escaped using '\\' else a new "
+                           "member of a multi-valued RDN is expected\n");
+            continue;
+        }
+        if (*valstr == '\0') {
+            BIO_printf(bio_err,
+                       "%s: No value provided for %s name attribute \"%s\", skipped\n",
+                       opt_getprog(),
+                       desc,
+                       typestr);
+            continue;
+        }
+        if (!X509_NAME_add_entry_by_NID(
+                n, nid, chtype, valstr, strlen((char *) valstr), -1, ismulti ? -1 : 0)) {
+            ERR_print_errors(bio_err);
+            BIO_printf(bio_err,
+                       "%s: Error adding %s name attribute \"/%s=%s\"\n",
+                       opt_getprog(),
+                       desc,
+                       typestr,
+                       valstr);
+            goto err;
+        }
+    }
+
+    OPENSSL_free(work);
+    return n;
+
+err:
+    X509_NAME_free(n);
+    OPENSSL_free(work);
+    return NULL;
+}
+
+static X509 *genCert(int type,
+                     X509 *midCA,
+                     EVP_PKEY *midcaPkey,
+                     QString subj,
+                     QString days,
+                     char **key,
+                     size_t *keylen)
+{
+    X509_NAME *name = NULL;
+    X509 *userCer = NULL;
     std::string str;
+    long len;
+    BIO *out = NULL;
+    X509_EXTENSION *cert_ex = NULL;
+    X509_REQ *userReq = NULL;
+    ASN1_INTEGER *aserial = NULL;
+    const X509_NAME *rootCAname;
+    time_t curTime;
+    ASN1_TIME *rootBeforeTime = NULL;
+    ASN1_TIME *rootAfterTime = NULL;
+    EVP_PKEY *userKey = EVP_PKEY_Q_keygen(NULL, NULL, "SM2");
+
+    if (userKey == NULL) {
+        printTSError();
+        return NULL;
+    }
+
+    out = BIO_new(BIO_s_mem());
+    if (out == NULL)
+        goto end;
+
+    if (!PEM_write_bio_PrivateKey(out, userKey, NULL, NULL, 0, NULL, NULL)) {
+        printTSError();
+        goto end;
+    }
+
+    len = BIO_get_mem_data(out, NULL);
+    if (len <= 0)
+        goto end;
+
+    *key = (char *) malloc(len);
+    if (*key == NULL)
+        goto end;
+
+    if (BIO_read(out, *key, len) != len)
+        goto end;
+
+    *keylen = len;
+
+    userReq = X509_REQ_new();
+    if (userReq == NULL)
+        goto end;
+
+    X509_REQ_set_pubkey(userReq, userKey);
+
+    if (!subj.isEmpty()) {
+        name = parse_name(subj.toStdString().c_str(), MBSTRING_ASC, 1, "subject");
+
+        if (!name) {
+            return NULL;
+        }
+
+        X509_REQ_set_subject_name(userReq, name);
+    }
+
+    if (!X509_REQ_set_version(userReq, X509_VERSION_3)
+        || !X509_REQ_sign(userReq, userKey, EVP_sm3()) || !X509_REQ_verify(userReq, userKey))
+        goto end;
+
     if (type == 0) {
         str = "Key Encipherment, Data Encipherment";
     } else {
         str = "Digital Signature";
     }
-    std::shared_ptr<X509_EXTENSION>
-        cert_ex(X509V3_EXT_conf_nid(NULL, NULL, NID_key_usage, str.c_str()), X509_EXTENSION_free);
-    X509_add_ext(userCer.get(), cert_ex.get(), -1);
 
-    X509_set_version(userCer.get(), X509_VERSION_3);
-    X509_set_pubkey(userCer.get(), userKey.get());
+    userCer = X509_new();
+    if (userCer == NULL)
+        goto end;
 
-    std::shared_ptr<ASN1_INTEGER> aserial(ASN1_INTEGER_new(), ASN1_INTEGER_free);
-    ASN1_INTEGER_set(aserial.get(), 0);
-    X509_set_serialNumber(userCer.get(), aserial.get());
+    cert_ex = X509V3_EXT_conf_nid(NULL, NULL, NID_key_usage, str.c_str());
+    if (cert_ex == NULL)
+        goto end;
 
-    X509_set_subject_name(userCer.get(), userCAname.get());
+    if (!X509_add_ext(userCer, cert_ex, -1) || !X509_set_version(userCer, X509_VERSION_3)
+        || !X509_set_pubkey(userCer, userKey))
+        goto end;
 
-    const X509_NAME *rootCAname = X509_get_subject_name(midCA.get());
-    X509_set_issuer_name(userCer.get(), rootCAname);
+    aserial = ASN1_INTEGER_new();
 
-    time_t curTime = time(NULL);
-    std::shared_ptr<ASN1_TIME> rootBeforeTime(ASN1_TIME_new(), ASN1_TIME_free);
-    ASN1_TIME_set(rootBeforeTime.get(), curTime);
-    X509_set_notBefore(userCer.get(), rootBeforeTime.get());
-    std::shared_ptr<ASN1_TIME>
-        rootAfterTime(ASN1_TIME_adj(NULL, curTime, 0, days.toInt() * 60 * 60 * 24), ASN1_TIME_free);
-    X509_set_notAfter(userCer.get(), rootAfterTime.get());
-    /* 使用中间CA私钥签发 */
-    X509_sign(userCer.get(), midcaPkey.get(), EVP_sm3());
+    if (!ASN1_INTEGER_set(aserial, 0))
+        goto end;
+
+    if (!X509_set_serialNumber(userCer, aserial) || !X509_set_subject_name(userCer, name))
+        goto end;
+
+    rootCAname = X509_get_subject_name(midCA);
+    if (!X509_set_issuer_name(userCer, rootCAname))
+        goto end;
+
+    curTime = time(NULL);
+    rootBeforeTime = ASN1_TIME_new();
+    rootAfterTime = ASN1_TIME_adj(NULL, curTime, 0, days.toInt() * 60 * 60 * 24);
+
+    if (!ASN1_TIME_set(rootBeforeTime, curTime) || !X509_set_notBefore(userCer, rootBeforeTime)
+        || !X509_set_notAfter(userCer, rootAfterTime))
+        goto end;
+
+    if (!X509_sign(userCer, midcaPkey, EVP_sm3()))
+        goto end;
+
+end:
+    ASN1_TIME_free(rootAfterTime);
+    ASN1_TIME_free(rootBeforeTime);
+    ASN1_INTEGER_free(aserial);
+    X509_EXTENSION_free(cert_ex);
+    X509_REQ_free(userReq);
+    BIO_free(out);
+    EVP_PKEY_free(userKey);
 
     return userCer;
 }
 
 void Sm2Cert::on_pushButtonGen_clicked()
 {
-    /* 获取用户输入的通用名称 */
-    QString CN = this->ui->lineEditCN->text();
-    if (CN.isEmpty()) {
+    QString subj = this->ui->lineEditSubj->text();
+    QString days = this->ui->lineEditDays->text();
+    QFile fsubca(":/certs/subca.pem");
+    QFile fpkey(":/certs/subca.key");
+    X509 *userSignCer = NULL, *userEncryptCer = NULL;
+    char *signKey = NULL, *encKey = NULL;
+    size_t signKeyLen, encKeyLen;
+    QString subcaQstr, pkeyQstr;
+    X509 *subca = NULL;
+    EVP_PKEY *pkey = NULL;
+    long len;
+    char *buf = NULL;
+    BIO *out = NULL;
+
+    if (subj.isEmpty()) {
         QMessageBox::warning(NULL,
                              "warning",
-                             QString("请输入通用名称！"),
+                             QString("请输入主体名称！"),
                              QMessageBox::Close,
                              QMessageBox::Close);
         return;
     }
-    /* 获取用户输入的有效期 */
-    QString days = this->ui->lineEditDays->text();
+
     if (days.isEmpty()) {
         QMessageBox::warning(NULL,
                              "warning",
@@ -115,8 +295,7 @@ void Sm2Cert::on_pushButtonGen_clicked()
                              QMessageBox::Close);
         return;
     }
-    /* 读取中间CA证书 */
-    QFile fsubca(":/certs/subca.pem");
+
     if (!fsubca.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::warning(NULL,
                              "warning",
@@ -125,45 +304,96 @@ void Sm2Cert::on_pushButtonGen_clicked()
                              QMessageBox::Close);
         return;
     }
-    QTextStream subcaInput(&fsubca);
-    QString subcaQstr = subcaInput.readAll();
-    std::shared_ptr<BIO> subcaOut(BIO_new(BIO_s_mem()), BIO_free);
-    BIO_write(subcaOut.get(), subcaQstr.toStdString().c_str(), subcaQstr.size());
-    std::shared_ptr<X509> subca(PEM_read_bio_X509(subcaOut.get(), NULL, NULL, NULL), X509_free);
-    fsubca.close();
 
-    /* 读取中间CA私钥 */
-    QFile fpkey(":/certs/subca_pkey.pem");
     if (!fpkey.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::warning(NULL,
                              "warning",
-                             QString("subca_pkey.pem打开失败！"),
+                             QString("subca.key打开失败！"),
                              QMessageBox::Close,
                              QMessageBox::Close);
         return;
     }
+    QTextStream subcaInput(&fsubca);
     QTextStream pkeyInput(&fpkey);
-    QString pkeyQstr = pkeyInput.readAll();
-    std::shared_ptr<BIO> pkeyOut(BIO_new(BIO_s_mem()), BIO_free);
-    BIO_write(pkeyOut.get(), pkeyQstr.toStdString().c_str(), pkeyQstr.size());
-    std::shared_ptr<EVP_PKEY> pkey(PEM_read_bio_PrivateKey(pkeyOut.get(), NULL, NULL, NULL),
-                                   EVP_PKEY_free);
+
+    subcaQstr = subcaInput.readAll();
+    pkeyQstr = pkeyInput.readAll();
+
+    out = BIO_new(BIO_s_mem());
+    if (out == NULL)
+        goto end;
+
+    if (BIO_write(out, subcaQstr.toStdString().c_str(), subcaQstr.size()) != subcaQstr.size())
+        goto end;
+
+    subca = PEM_read_bio_X509(out, NULL, NULL, NULL);
+    if (subca == NULL) {
+        this->ui->textBrowserSignKey->setText(subcaQstr);
+        printTSError();
+        goto end;
+    }
+
+    fsubca.close();
+    BIO_reset(out);
+
+    if (BIO_write(out, pkeyQstr.toStdString().c_str(), pkeyQstr.size()) != pkeyQstr.size())
+        goto end;
+
+    pkey = PEM_read_bio_PrivateKey(out, NULL, NULL, NULL);
+    if (pkey == NULL) {
+        printTSError();
+        goto end;
+    }
+
     fpkey.close();
 
-    /* 生成用户签名证书 */
-    std::shared_ptr<X509> userSignCer = this->genCert(1, subca, pkey, CN, days);
-    /* 生成用户加密证书 */
-    std::shared_ptr<X509> userEncryptCer = this->genCert(0, subca, pkey, CN, days);
-    /* 将用户证书以PEM格式输出到输出栏 */
-    std::shared_ptr<BIO> outSign(BIO_new(BIO_s_mem()), BIO_free);
-    PEM_write_bio_X509(outSign.get(), userSignCer.get());
-    int len = BIO_pending(outSign.get());
-    char buf[2048] = {};
-    BIO_read(outSign.get(), buf, len);
-    this->ui->textBrowserSignOutput->setPlainText(QString(buf));
-    std::shared_ptr<BIO> outEncrypt(BIO_new(BIO_s_mem()), BIO_free);
-    PEM_write_bio_X509(outEncrypt.get(), userEncryptCer.get());
-    len = BIO_pending(outEncrypt.get());
-    BIO_read(outEncrypt.get(), buf, len);
-    this->ui->textBrowserEncryptOutput->setPlainText(QString(buf));
+    userSignCer = genCert(1, subca, pkey, subj, days, &signKey, &signKeyLen);
+    if (userSignCer == NULL) {
+        printTSError();
+        goto end;
+    }
+
+    userEncryptCer = genCert(0, subca, pkey, subj, days, &encKey, &encKeyLen);
+    if (userEncryptCer == NULL) {
+        printTSError();
+        goto end;
+    }
+
+    this->ui->textBrowserSignKey->setText(QString::fromStdString(std::string(signKey, signKeyLen)));
+    this->ui->textBrowserEncryKey->setText(QString::fromStdString(std::string(encKey, encKeyLen)));
+
+    BIO_reset(out);
+
+    if (!PEM_write_bio_X509(out, userSignCer)) {
+        printTSError();
+        goto end;
+    }
+
+    len = BIO_get_mem_data(out, &buf);
+    if (len <= 0)
+        goto end;
+
+    this->ui->textBrowserSignOutput->setPlainText(QString::fromStdString(std::string(buf, len)));
+
+    BIO_reset(out);
+
+    if (!PEM_write_bio_X509(out, userEncryptCer)) {
+        printTSError();
+        goto end;
+    }
+
+    len = BIO_get_mem_data(out, &buf);
+    if (len <= 0)
+        goto end;
+
+    this->ui->textBrowserEncryptOutput->setPlainText(QString::fromStdString(std::string(buf, len)));
+
+end:
+    EVP_PKEY_free(pkey);
+    X509_free(subca);
+    BIO_free(out);
+    free(signKey);
+    free(encKey);
+    X509_free(userSignCer);
+    X509_free(userEncryptCer);
 }

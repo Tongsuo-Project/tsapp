@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>铜锁密码工具箱（tsapp）</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QListWidget" name="listWidget">
+        <property name="maximumSize">
+         <size>
+          <width>200</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <item>
+         <property name="text">
+          <string>随机数生成</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>SM2密钥生成</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>SM2签名验签</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>SM2加解密</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>SM3杂凑</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>SM4加解密</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>双证书签发</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>TLCP客户端</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QStackedWidget" name="stackedWidget">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="RandNum" name="page_1"/>
+        <widget class="Sm2Key" name="page_10"/>
+        <widget class="Sm2SignVerify" name="page_11"/>
+        <widget class="Sm2Encrypt" name="page_12"/>
+        <widget class="Sm3Hash" name="page_13"/>
+        <widget class="Sm4encrypt" name="page_7"/>
+        <widget class="Sm2Cert" name="page_8"/>
+        <widget class="TLCPclient" name="page_9"/>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menutsapp">
+    <property name="title">
+     <string>tsapp</string>
+    </property>
+    <addaction name="action_about"/>
+    <addaction name="separator"/>
+    <addaction name="action_exit"/>
+   </widget>
+   <addaction name="menutsapp"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="action_about">
+   <property name="text">
+    <string>关于tsapp</string>
+   </property>
+  </action>
+  <action name="action_exit">
+   <property name="text">
+    <string>退出tsapp</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>RandNum</class>
+   <extends>QWidget</extends>
+   <header>randnum.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Sm2Key</class>
+   <extends>QWidget</extends>
+   <header>sm2key.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Sm2SignVerify</class>
+   <extends>QWidget</extends>
+   <header>sm2signverify.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Sm2Encrypt</class>
+   <extends>QWidget</extends>
+   <header>sm2encrypt.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Sm3Hash</class>
+   <extends>QWidget</extends>
+   <header>sm3hash.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Sm4encrypt</class>
+   <extends>QWidget</extends>
+   <header>sm4encrypt.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Sm2Cert</class>
+   <extends>QWidget</extends>
+   <header>sm2cert.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TLCPclient</class>
+   <extends>QWidget</extends>
+   <header>tlcpclient.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

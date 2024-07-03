@@ -17,3 +17,18 @@ void getError()
                          QMessageBox::Close);
     return;
 }
+
+void printTSError()
+{
+    char buf[512];
+
+    ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
+
+    QMessageBox::warning(NULL,
+                         "Error",
+                         QString::asprintf("%s", buf),
+                         QMessageBox::Close,
+                         QMessageBox::Close);
+
+    return;
+}

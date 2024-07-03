@@ -18,9 +18,15 @@ public:
     ~Sm4encrypt();
 
 private slots:
-    void on_pushButtonGen_clicked();
+    void on_pushButtonEncrypt_clicked();
 
     void on_pushButtonDecrypt_clicked();
+
+    void on_pushButtonRandomIV_clicked();
+
+    void on_pushButtonRandomKey_clicked();
+
+    void on_comboBoxMode_currentTextChanged(const QString &arg1);
 
 private:
     Ui::Sm4encrypt *ui;

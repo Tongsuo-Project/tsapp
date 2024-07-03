@@ -14,91 +14,41 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="3" column="1">
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QComboBox" name="comboBoxMode">
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <item>
-        <property name="text">
-         <string>CBC</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>EBC</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item>
-      <widget class="QStackedWidget" name="stackedWidget">
-       <property name="currentIndex">
-        <number>0</number>
-       </property>
-       <widget class="QWidget" name="pageCBC">
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QLabel" name="label_4">
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>初始IV：</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="lineEditCBCIV">
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>1F:B2:D4:2F:B3:6E:2E:88:A2:20:B0:4F:2E:49:AA:13</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="pageEBC"/>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="label_5">
+   <item row="0" column="1">
+    <widget class="QComboBox" name="comboBoxMode">
      <property name="font">
       <font>
        <pointsize>12</pointsize>
       </font>
      </property>
-     <property name="text">
-      <string>加密/解密结果：</string>
-     </property>
+     <item>
+      <property name="text">
+       <string>SM4-CBC</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>SM4-ECB</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>SM4-CFB</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>SM4-OFB</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>SM4-CTR</string>
+      </property>
+     </item>
     </widget>
    </item>
-   <item row="6" column="1">
-    <spacer name="verticalSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="1" column="0">
+   <item row="3" column="0">
     <widget class="QLabel" name="label">
      <property name="font">
       <font>
@@ -106,12 +56,12 @@
       </font>
      </property>
      <property name="text">
-      <string>加密/解密内容：</string>
+      <string>明文：</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QPlainTextEdit" name="plainTextEditInput">
+   <item row="3" column="1">
+    <widget class="QPlainTextEdit" name="plainTextEditPlain">
      <property name="font">
       <font>
        <pointsize>12</pointsize>
@@ -122,66 +72,59 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="2" column="1">
-    <widget class="QLineEdit" name="lineEditKey">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_3">
      <property name="font">
       <font>
        <pointsize>12</pointsize>
       </font>
      </property>
      <property name="text">
-      <string>3F:34:2E:9D:67:D6:CE:7B:E7:01:75:6A:F7:BA:C8:F2</string>
+      <string>加密模式：</string>
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="QTextBrowser" name="textBrowserOutput">
-     <property name="font">
-      <font>
-       <pointsize>12</pointsize>
-      </font>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_2">
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="lineEditIV">
      <property name="font">
       <font>
        <pointsize>12</pointsize>
       </font>
      </property>
      <property name="text">
-      <string>密钥：</string>
+      <string/>
+     </property>
+     <property name="placeholderText">
+      <string>hex格式</string>
      </property>
     </widget>
    </item>
-   <item row="4" column="3">
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>初始化向量：</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>密文：</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="3">
     <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QPushButton" name="pushButtonGen">
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>加密</string>
-       </property>
-      </widget>
-     </item>
      <item>
       <widget class="QPushButton" name="pushButtonDecrypt">
        <property name="font">
@@ -196,37 +139,84 @@
      </item>
     </layout>
    </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="label_3">
+   <item row="5" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout"/>
+   </item>
+   <item row="8" column="1">
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_2">
      <property name="font">
       <font>
        <pointsize>12</pointsize>
       </font>
      </property>
      <property name="text">
-      <string>加密模式：</string>
+      <string>密钥：</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLineEdit" name="lineEditKey">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="placeholderText">
+      <string>hex格式</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="3">
+    <widget class="QPushButton" name="pushButtonEncrypt">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>加密</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QPlainTextEdit" name="plainTextEditCipher">
+     <property name="placeholderText">
+      <string>hex格式</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3">
+    <widget class="QPushButton" name="pushButtonRandomIV">
+     <property name="text">
+      <string>随机</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="3">
+    <widget class="QPushButton" name="pushButtonRandomKey">
+     <property name="text">
+      <string>随机</string>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>comboBoxMode</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>stackedWidget</receiver>
-   <slot>setCurrentIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>112</x>
-     <y>178</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>169</x>
-     <y>189</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

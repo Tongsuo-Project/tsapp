@@ -2,6 +2,7 @@
 #define TLCPCLIENT_H
 
 #include <memory>
+#include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <tserror.h>
 #include <QTcpSocket>
@@ -33,6 +34,9 @@ private slots:
 
 private:
     Ui::TLCPclient *ui;
+    QTcpSocket socket;
+    SSL_CTX *ctx;
+    SSL *ssl;
 };
 
 #endif // TLCPCLIENT_H

@@ -3,6 +3,7 @@
 
 #include "tserror.h"
 #include <memory>
+#include <openssl/crypto.h>
 #include <openssl/rand.h>
 #include <QIntValidator>
 #include <QLineEdit>
