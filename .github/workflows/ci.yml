@@ -26,8 +26,17 @@ jobs:
         run: |
           clang-format-15 --Werror --dry-run *.cpp *.h
 
-  build-on-linux:
-    runs-on: ubuntu-latest
+  unix:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [
+          macos-12,
+          macos-13,
+          ubuntu-20.04,
+          ubuntu-22.04,
+        ]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: checkout tongsuo
         uses: actions/checkout@v3
@@ -37,15 +46,15 @@ jobs:
       - name: build Tongsuo
         working-directory: ./Tongsuo
         run: |
-          ./config --banner=Configured --prefix=${RUNNER_TEMP}/tongsuo enable-ntls
+          ./config --banner=Configured --prefix=${RUNNER_TEMP}/tongsuo --libdir=${RUNNER_TEMP}/tongsuo/lib enable-ntls
           make -s -j4
           make install
 
       - uses: actions/checkout@v3
       - name: install QT
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
-          version: 6.2.4
+          version: 6.5.3
 
       - name: build tsapp
         run: |
@@ -53,8 +62,14 @@ jobs:
           make -s -j4
           make install
 
-  build-on-windows:
-    runs-on: windows-latest
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-2019
+          - windows-2022
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: ilammy/msvc-dev-cmd@v1
         with:
@@ -82,9 +97,9 @@ jobs:
 
       - uses: actions/checkout@v3
       - name: install QT
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
-          version: 6.2.4
+          version: 6.5.3
 
       - name: build tsapp
         shell: cmd

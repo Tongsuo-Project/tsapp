@@ -3,9 +3,11 @@
 
 #include "tserror.h"
 #include <memory>
+#include <openssl/core_names.h>
 #include <openssl/crypto.h>
 #include <openssl/ec.h>
 #include <openssl/evp.h>
+#include <openssl/param_build.h>
 #include <stdio.h>
 #include <string.h>
 #include <string>
@@ -27,6 +29,8 @@ private slots:
     void on_pushButtonEncrypt_clicked();
 
     void on_pushButtonDecrypt_clicked();
+
+    void on_pushButtonGen_clicked();
 
 private:
     Ui::Sm2Encrypt *ui;

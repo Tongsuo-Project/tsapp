@@ -1,11 +1,14 @@
 #ifndef SM2KEY_H
 #define SM2KEY_H
 
-#include "openssl/ec.h"
 #include "tserror.h"
 #include <memory>
+#include <openssl/core_names.h>
+#include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
+#include <openssl/params.h>
+#include <openssl/pem.h>
 #include <openssl/x509.h>
 #include <string.h>
 #include <string>

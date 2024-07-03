@@ -1,4 +1,5 @@
 #include "sm2signverify.h"
+#include "sm2.h"
 #include "ui_sm2signverify.h"
 
 Sm2SignVerify::Sm2SignVerify(QWidget *parent)
@@ -15,155 +16,176 @@ Sm2SignVerify::~Sm2SignVerify()
 
 void Sm2SignVerify::on_pushButtonGenKey_clicked()
 {
-    /* 选定椭圆曲线组 */
-    std::shared_ptr<EC_GROUP> group(EC_GROUP_new_by_curve_name(NID_sm2), EC_GROUP_free);
-    if (!group) {
-        getError();
-        return;
+    EVP_PKEY *pkey = NULL;
+    std::string hex;
+
+    pkey = EVP_PKEY_Q_keygen(NULL, NULL, "SM2");
+    if (pkey == NULL) {
+        printTSError();
+        goto end;
     }
-    /* 密钥上下文生成 */
-    std::shared_ptr<EC_KEY> key(EC_KEY_new(), EC_KEY_free);
-    /* 设定密钥的曲线组 */
-    EC_KEY_set_group(key.get(), group.get());
-    /* 生成EC_KEY */
-    int res = EC_KEY_generate_key(key.get());
-    if (res != 1) {
-        getError();
-        return;
+
+    if (!sm2_key_get_pub_hex(pkey, hex)) {
+        printTSError();
+        goto end;
     }
-    /* 取公钥并转换为十六进制字符串 */
-    const EC_POINT *pubPoint = EC_KEY_get0_public_key(key.get());
-    std::shared_ptr<char> pubHexStr(EC_POINT_point2hex(group.get(),
-                                                       pubPoint,
-                                                       POINT_CONVERSION_UNCOMPRESSED,
-                                                       NULL),
-                                    [](char *pub) { OPENSSL_free(pub); });
-    /* 取私钥并转换为十六进制字符串 */
-    const BIGNUM *priBn = EC_KEY_get0_private_key(key.get());
-    std::shared_ptr<char> priHexStr(BN_bn2hex(priBn), [](char *pri) { OPENSSL_free(pri); });
-    /* 在浏览框中显示公钥和私钥 */
-    this->ui->lineEditPriKey->setText(QString(priHexStr.get()));
-    this->ui->plainTextEditPubKey->setPlainText(QString(pubHexStr.get()));
+
+    this->ui->plainTextEditPubKey->setPlainText(QString::fromStdString(hex));
+
+    if (!sm2_key_get_priv_hex(pkey, hex)) {
+        printTSError();
+        goto end;
+    }
+
+    this->ui->lineEditPriKey->setText(QString::fromStdString(hex));
+
+end:
+    EVP_PKEY_free(pkey);
+    return;
 }
 
 void Sm2SignVerify::on_pushButtonSign_clicked()
 {
     /* 获取私钥 */
+    QString pubQstr = this->ui->plainTextEditPubKey->toPlainText();
     QString priQstr = this->ui->lineEditPriKey->text();
+    QString inputQstr = this->ui->textEditData->toPlainText();
+    EVP_PKEY *pkey = NULL;
+    EVP_MD_CTX *mctx = NULL;
+    size_t siglen = 0;
+    std::vector<unsigned char> sig;
+    std::vector<char> str;
+
     if (priQstr.isEmpty()) {
         QMessageBox::warning(NULL,
                              "warning",
-                             QString("请输入或者生成私钥！"),
-                             QMessageBox::Close,
-                             QMessageBox::Close);
-        return;
-    }
-    /* 获取待签名数据 */
-    QString inputQstr = this->ui->lineEditInput->text();
-    if (inputQstr.isEmpty()) {
-        QMessageBox::warning(NULL,
-                             "warning",
-                             QString("请输入待签数据！"),
+                             QString("请输入或生成私钥！"),
                              QMessageBox::Close,
                              QMessageBox::Close);
         return;
     }
 
-    /* 选定椭圆曲线组 */
-    std::shared_ptr<EC_GROUP> group(EC_GROUP_new_by_curve_name(NID_sm2), EC_GROUP_free);
-    /* EC密钥生成 */
-    std::shared_ptr<EC_KEY> ecKey(EC_KEY_new(), EC_KEY_free);
-    /* 设定密钥的曲线组 */
-    EC_KEY_set_group(ecKey.get(), group.get());
-    /* 将16进制字符串私钥转为BIGNUM，并设置到EC_KEY */
-    BIGNUM *priBn = BN_new();
-    BN_hex2bn(&priBn, priQstr.toStdString().c_str());
-    EC_KEY_set_private_key(ecKey.get(), priBn);
-    BN_free(priBn);
-    /* 将16进制字符串公钥转为ECPOINT，并设置到EC_KEY */
-    QString pubQstrInput = this->ui->plainTextEditPubKey->toPlainText();
-    const EC_POINT *pubPoint
-        = EC_POINT_hex2point(group.get(), pubQstrInput.toStdString().c_str(), NULL, NULL);
-    EC_KEY_set_public_key(ecKey.get(), pubPoint);
-    /* 将EC_KEY设置到EVP_PKEY */
-    std::shared_ptr<EVP_PKEY> pKey(EVP_PKEY_new(), EVP_PKEY_free);
-    EVP_PKEY_set1_EC_KEY(pKey.get(), ecKey.get());
-    /* 签名上下文及初始化 */
-    size_t siglen = 0;
-    std::shared_ptr<EVP_MD_CTX> mctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
-    if (!EVP_DigestSignInit(mctx.get(), NULL, EVP_sm3(), NULL, pKey.get())
-        || !EVP_DigestSign(mctx.get(),
+    if (inputQstr.isEmpty()) {
+        QMessageBox::warning(NULL,
+                             "warning",
+                             QString("请输入待签名数据！"),
+                             QMessageBox::Close,
+                             QMessageBox::Close);
+        return;
+    }
+
+    pkey = sm2_key_new_from_raw_pub_and_priv(pubQstr.toStdString(), priQstr.toStdString());
+    if (pkey == NULL) {
+        printTSError();
+        return;
+    }
+
+    mctx = EVP_MD_CTX_new();
+    if (mctx == NULL)
+        goto end;
+
+    if (!EVP_DigestSignInit(mctx, NULL, EVP_sm3(), NULL, pkey)
+        || !EVP_DigestSign(mctx,
                            NULL,
                            &siglen,
                            (unsigned char *) inputQstr.toStdString().c_str(),
                            inputQstr.size())) {
-        getError();
-        return;
+        printTSError();
+        goto end;
     }
-    /* 签名 */
-    std::shared_ptr<unsigned char> sig((unsigned char *) OPENSSL_malloc(siglen),
-                                       [](unsigned char *buf) { OPENSSL_free(buf); });
-    int ret = EVP_DigestSign(mctx.get(),
-                             sig.get(),
-                             &siglen,
-                             (unsigned char *) inputQstr.toStdString().c_str(),
-                             inputQstr.size());
-    if (ret != 1) {
-        getError();
-        return;
+
+    sig.reserve(siglen);
+
+    if (EVP_DigestSign(mctx,
+                       sig.data(),
+                       &siglen,
+                       (unsigned char *) inputQstr.toStdString().c_str(),
+                       inputQstr.size())
+        != 1) {
+        printTSError();
+        goto end;
     }
-    /* 显示十六进制字符串到输出框 */
-    std::shared_ptr<char> out(OPENSSL_buf2hexstr(sig.get(), siglen),
-                              [](char *buf) { OPENSSL_free(buf); });
-    this->ui->plainTextEditOutput->setPlainText(QString(out.get()));
+
+    str.reserve(siglen * 2 + 1);
+
+    if (OPENSSL_buf2hexstr_ex(str.data(), str.capacity(), NULL, sig.data(), siglen, '\0') != 1) {
+        printTSError();
+        goto end;
+    }
+
+    this->ui->plainTextEditSign->setPlainText(
+        QString::fromStdString(std::string(str.data(), str.capacity())));
+end:
+    EVP_MD_CTX_free(mctx);
+    EVP_PKEY_free(pkey);
+    return;
 }
 
 void Sm2SignVerify::on_pushButtonVerify_clicked()
 {
-    /* 获取原文 */
-    QString inputQstr = this->ui->lineEditInput->text();
-    /* 获取签名 */
-    QString signQstr = this->ui->plainTextEditOutput->toPlainText();
-    long siglen = signQstr.size();
-    const unsigned char *sig = OPENSSL_hexstr2buf(signQstr.toStdString().c_str(), &siglen);
-    /* 选定椭圆曲线组 */
-    std::shared_ptr<EC_GROUP> group(EC_GROUP_new_by_curve_name(NID_sm2), EC_GROUP_free);
-    /* 密钥上下文生成 */
-    std::shared_ptr<EC_KEY> eckey(EC_KEY_new(), EC_KEY_free);
-    /* 设定密钥的曲线组 */
-    EC_KEY_set_group(eckey.get(), group.get());
-    /* 获取用户输入的公钥 */
     QString pubQstrInput = this->ui->plainTextEditPubKey->toPlainText();
-    /* 将16进制字符串公钥转为EC_POINT，并设置到EC_KEY */
-    const EC_POINT *pubPoint
-        = EC_POINT_hex2point(group.get(), pubQstrInput.toStdString().c_str(), NULL, NULL);
-    EC_KEY_set_public_key(eckey.get(), pubPoint);
-    /* 将EC_KEY设置到EVP_PKEY */
-    std::shared_ptr<EVP_PKEY> pKey(EVP_PKEY_new(), EVP_PKEY_free);
-    EVP_PKEY_set1_EC_KEY(pKey.get(), eckey.get());
-    /* 验签上下文及初始化 */
-    std::shared_ptr<EVP_MD_CTX> mctx(EVP_MD_CTX_new(), EVP_MD_CTX_free);
-    if (!EVP_DigestVerifyInit(mctx.get(), NULL, EVP_sm3(), NULL, pKey.get())) {
-        getError();
-        return;
-    }
-    /* 验签 */
-    int ret = EVP_DigestVerify(mctx.get(),
-                               sig,
-                               siglen,
-                               (unsigned char *) inputQstr.toStdString().c_str(),
-                               inputQstr.size());
-    if (ret == 1) {
-        /* 验签成功 */
+    QString inputQstr = this->ui->textEditData->toPlainText();
+    QString signQstr = this->ui->plainTextEditSign->toPlainText();
+    std::vector<unsigned char> sig;
+    EVP_PKEY *pkey = NULL;
+    EVP_MD_CTX *mctx = NULL;
+    int ret;
+
+    if (pubQstrInput.isEmpty()) {
         QMessageBox::warning(NULL,
                              "warning",
-                             QString("验签成功！"),
+                             QString("请输入公钥！"),
                              QMessageBox::Close,
                              QMessageBox::Close);
-    } else if (ret == 0) {
-        /* 验签失败 */
+        return;
+    }
+
+    if (signQstr.isEmpty()) {
         QMessageBox::warning(NULL,
                              "warning",
+                             QString("请输入签名！"),
+                             QMessageBox::Close,
+                             QMessageBox::Close);
+        return;
+    }
+
+    sig.reserve(signQstr.size() / 2);
+
+    if (OPENSSL_hexstr2buf_ex(sig.data(), sig.capacity(), NULL, signQstr.toStdString().c_str(), '\0')
+        != 1) {
+        printTSError();
+        goto end;
+    }
+
+    pkey = sm2_key_new_from_raw_pub(pubQstrInput.toStdString());
+    if (pkey == NULL) {
+        printTSError();
+        goto end;
+    }
+
+    mctx = EVP_MD_CTX_new();
+    if (mctx == NULL)
+        goto end;
+
+    if (!EVP_DigestVerifyInit(mctx, NULL, EVP_sm3(), NULL, pkey)) {
+        printTSError();
+        goto end;
+    }
+    /* 验签 */
+    ret = EVP_DigestVerify(mctx,
+                           sig.data(),
+                           sig.capacity(),
+                           (unsigned char *) inputQstr.toStdString().c_str(),
+                           inputQstr.size());
+    if (ret == 1) {
+        QMessageBox::information(NULL,
+                                 "success",
+                                 QString("验签成功！"),
+                                 QMessageBox::Close,
+                                 QMessageBox::Close);
+    } else if (ret == 0) {
+        QMessageBox::warning(NULL,
+                             "failed",
                              QString("验签失败！"),
                              QMessageBox::Close,
                              QMessageBox::Close);
@@ -171,4 +193,8 @@ void Sm2SignVerify::on_pushButtonVerify_clicked()
         getError();
         return;
     }
+end:
+    EVP_MD_CTX_free(mctx);
+    EVP_PKEY_free(pkey);
+    return;
 }

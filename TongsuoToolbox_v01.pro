@@ -11,10 +11,11 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    home.cpp \
+    about.cpp \
     main.cpp \
     mainwindow.cpp \
     randnum.cpp \
+    sm2.cpp \
     sm2cert.cpp \
     sm2encrypt.cpp \
     sm2key.cpp \
@@ -25,9 +26,10 @@ SOURCES += \
     tserror.cpp
 
 HEADERS += \
-    home.h \
+    about.h \
     mainwindow.h \
     randnum.h \
+    sm2.h \
     sm2cert.h \
     sm2encrypt.h \
     sm2key.h \
@@ -35,27 +37,29 @@ HEADERS += \
     sm3hash.h \
     sm4encrypt.h \
     tlcpclient.h \
-    tserror.h
+    tserror.h \
+    version.h
 
 # Default rules for deployment.
 target.path = $$(PREFIX)
 !isEmpty(target.path): INSTALLS += target
 
 win32: LIBS += -ladvapi32 -lcrypt32 -lgdi32 -luser32 -lws2_32 -L$$(TONGSUO_HOME)/lib -llibcrypto
-else:unix: LIBS += -L$$(TONGSUO_HOME)/lib64 -lcrypto
+else:unix: LIBS += -L$$(TONGSUO_HOME)/lib -lcrypto
 
 win32: LIBS += -ladvapi32 -lcrypt32 -lgdi32 -luser32 -lws2_32 -L$$(TONGSUO_HOME)/lib -llibssl
-else:unix: LIBS += -L$$(TONGSUO_HOME)/lib64 -lssl
+else:unix: LIBS += -L$$(TONGSUO_HOME)/lib -lssl
 
 INCLUDEPATH += $$(TONGSUO_HOME)/include
 DEPENDPATH +=  $$(TONGSUO_HOME)/include
 
 win32-g++: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libcrypto.lib.a
 else:win32:!win32-g++: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libcrypto.lib
-else:unix: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib64/libcrypto.a
+else:unix: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libcrypto.a
 
 FORMS += \
-    home.ui \
+    about.ui \
+    mainwindow.ui \
     randnum.ui \
     sm2cert.ui \
     sm2encrypt.ui \
@@ -66,7 +70,6 @@ FORMS += \
     tlcpclient.ui
 
 RESOURCES += \
-    certs.qrc \
-    images.qrc
+    certs.qrc
 
 DISTFILES +=
