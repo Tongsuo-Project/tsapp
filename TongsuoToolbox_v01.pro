@@ -10,6 +10,8 @@ CONFIG += c++17
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+TARGET=tsapp
+
 SOURCES += \
     about.cpp \
     main.cpp \
@@ -44,18 +46,15 @@ HEADERS += \
 target.path = $$(PREFIX)
 !isEmpty(target.path): INSTALLS += target
 
-win32: LIBS += -ladvapi32 -lcrypt32 -lgdi32 -luser32 -lws2_32 -L$$(TONGSUO_HOME)/lib -llibcrypto
-else:unix: LIBS += -L$$(TONGSUO_HOME)/lib -lcrypto
-
-win32: LIBS += -ladvapi32 -lcrypt32 -lgdi32 -luser32 -lws2_32 -L$$(TONGSUO_HOME)/lib -llibssl
-else:unix: LIBS += -L$$(TONGSUO_HOME)/lib -lssl
+win32: LIBS += -ladvapi32 -lcrypt32 -lgdi32 -luser32 -lws2_32 -L$$(TONGSUO_HOME)/lib -llibssl -llibcrypto
+else:unix: LIBS += -L$$(TONGSUO_HOME)/lib -lssl -lcrypto
 
 INCLUDEPATH += $$(TONGSUO_HOME)/include
 DEPENDPATH +=  $$(TONGSUO_HOME)/include
 
-win32-g++: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libcrypto.lib.a
-else:win32:!win32-g++: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libcrypto.lib
-else:unix: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libcrypto.a
+win32-g++: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libcrypto.lib.a $$(TONGSUO_HOME)/lib/libssl.lib.a
+else:win32:!win32-g++: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libcrypto.lib $$(TONGSUO_HOME)/lib/libssl.lib
+else:unix: PRE_TARGETDEPS += $$(TONGSUO_HOME)/lib/libssl.a $$(TONGSUO_HOME)/lib/libcrypto.a
 
 FORMS += \
     about.ui \

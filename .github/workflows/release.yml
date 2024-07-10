@@ -1,0 +1,169 @@
+name: release
+
+on:
+  workflow_dispatch:
+    tags:
+      - '*'
+env:
+  TONGSUO_VERSION: 8.4.0
+
+permissions:
+  contents: write
+
+jobs:
+  new_release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Changes in this Release
+            - First Change
+            - Second Change
+          draft: true
+          prerelease: true
+
+  build_linux_macos:
+    runs-on: ${{ matrix.os}}
+    needs: [new_release]
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-20.04]
+    name: "build-${{ matrix.os }}"
+    steps:
+      - name: build Tongsuo
+        run: |
+          wget "https://github.com/Tongsuo-Project/Tongsuo/archive/refs/tags/${TONGSUO_VERSION}.tar.gz"
+          tar zxf "${TONGSUO_VERSION}.tar.gz"
+          pushd "Tongsuo-${TONGSUO_VERSION}"
+          ./config --prefix=${RUNNER_TEMP}/tongsuo --libdir=${RUNNER_TEMP}/tongsuo/lib no-shared no-dso enable-ntls --release
+          make -s -j4
+          make install
+          popd
+      - uses: actions/checkout@v3
+      - name: install QT
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.5.3
+
+      - name: build tsapp
+        run: |
+          TONGSUO_HOME=${RUNNER_TEMP}/tongsuo PREFIX=${RUNNER_TEMP}/tsapp qmake
+          make -s -j4
+          make install
+          find ${RUNNER_TEMP}/tsapp
+
+      - name: package for macos
+        run: |
+          macdeployqt tsapp.app -qmldir=. -verbose=1 -dmg
+        if: ${{ matrix.os == 'macos-latest' }}
+
+      - name: upload artifact for macos
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.new_release.outputs.upload_url }}
+          asset_path: tsapp.dmg
+          asset_name: tsapp-${{ runner.os }}.dmg
+          asset_content_type: application/octet-stream
+        if: ${{ matrix.os == 'macos-latest' }}
+
+      - name: install linuxdeployqt and package for linux
+        run: |
+          wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          chmod +x linuxdeployqt-continuous-x86_64.AppImage
+          cp linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
+          mkdir -p ${RUNNER_TEMP}/Install/tsapp/
+          cp ${RUNNER_TEMP}/tsapp/tsapp ${RUNNER_TEMP}/Install/tsapp/
+          cd ${RUNNER_TEMP}/Install/tsapp/
+          linuxdeployqt tsapp -appimage -no-copy-copyright-files -no-plugins -no-translations  || echo
+          cd ..
+          tar czf tsapp.tgz tsapp
+        if: ${{ matrix.os == 'ubuntu-20.04' }}
+
+      - name: upload artifact for linux
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.new_release.outputs.upload_url }}
+          asset_path:  ${{ runner.temp }}/Install/tsapp.tgz
+          asset_name: tsapp-${{ runner.os }}.tgz
+          asset_content_type: application/x-compressed-tar
+        if: ${{ matrix.os == 'ubuntu-20.04' }}
+
+  build_windows:
+    runs-on: windows-latest
+    needs: [new_release]
+    steps:
+      - run: choco install -y winrar
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: win64
+      - uses: ilammy/setup-nasm@v1
+        with:
+          platform: win64
+      - uses: shogo82148/actions-setup-perl@v1
+      - name: Download Tongsuo source
+        run: |
+          wget "https://github.com/Tongsuo-Project/Tongsuo/archive/refs/tags/${env:TONGSUO_VERSION}.tar.gz" -OutFile "${env:TONGSUO_VERSION}.tar.gz"
+        shell: powershell
+      - run: |
+          "C:\Program Files\WinRAR\WinRAR.exe" -INUL x %TONGSUO_VERSION%.tar.gz
+        shell: cmd
+      - name: build Tongsuo
+        shell: cmd
+        run: |
+          pushd "Tongsuo-%TONGSUO_VERSION%"
+          mkdir _build
+          pushd _build
+          perl ..\Configure no-makedepend no-shared enable-ntls VC-WIN64A --prefix=%RUNNER_TEMP%\tongsuo
+          nmake /S
+          nmake install_sw
+          popd
+          popd
+      - uses: actions/checkout@v3
+      - name: install QT
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.5.3
+
+      - name: build tsapp
+        shell: cmd
+        run: |
+          set TONGSUO_HOME=%RUNNER_TEMP%\tongsuo
+          set PREFIX=%RUNNER_TEMP%\tsapp
+          qmake
+          nmake /S
+          nmake install
+
+      - name: package
+        shell: cmd
+        run: |
+          set PKG_DIR=tsapp-WIN64
+          mkdir %PKG_DIR%
+          cp %RUNNER_TEMP%\tsapp\tsapp.exe %PKG_DIR%\
+          windeployqt --qmldir . %PKG_DIR%\tsapp.exe
+          "C:\Program Files\WinRAR\WinRAR.exe" a tsapp.zip %PKG_DIR%\
+          cd
+          dir
+
+      - name: upload artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.new_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}\tsapp.zip
+          asset_name: tsapp-${{ runner.os }}.zip
+          asset_content_type: application/zip
+
