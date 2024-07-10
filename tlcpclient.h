@@ -7,7 +7,6 @@
 #include <tserror.h>
 #include <QTcpSocket>
 #include <QWidget>
-#pragma comment(lib, "ws2_32.lib")
 
 namespace Ui {
 class TLCPclient;

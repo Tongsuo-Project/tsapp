@@ -1,0 +1,21 @@
+
+ tsapp CHANGES
+ -------------
+
+ Changes with 1.0.0 [xx XXX xxxx]
+
+  *) 支持随机数生成器
+
+  *) 支持SM2密钥对生成
+
+  *) 支持SM2签名和验签
+
+  *) 支持SM2加密和解密
+
+  *) 支持SM3杂凑
+
+  *) 支持SM4加解密，模式包括CBC、ECB、CFB、OFB、CTR
+
+  *) 支持双证书签发
+
+  *) 支持TLCP客户端
